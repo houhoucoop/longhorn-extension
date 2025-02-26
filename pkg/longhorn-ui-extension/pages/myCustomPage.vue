@@ -1,5 +1,8 @@
 <script>
-export default { name: 'MyCustomPage' };
+export default {
+  name: 'MyCustomPage',
+};
+
 </script>
 
 <template>
