@@ -1,6 +1,6 @@
 {
-  "name": "longhorn-ui-extension",
-  "description": "longhorn-ui-extension plugin",
+  "name": "longhorn",
+  "description": "longhorn plugin",
   "version": "0.1.0",
   "private": false,
   "rancher": {
