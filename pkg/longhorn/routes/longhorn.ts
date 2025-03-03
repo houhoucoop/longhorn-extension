@@ -1,9 +1,9 @@
-import ListResource from '@shell/pages/c/_cluster/_product/_resource/index.vue';
-import CreateResource from '@shell/pages/c/_cluster/_product/_resource/create.vue';
-import ViewResource from '@shell/pages/c/_cluster/_product/_resource/_id.vue';
-import ViewNamespacedResource from '@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue';
-import Dashboard from '../pages/c/_cluster/index.vue';
 import { PRODUCT_NAME } from '../types/longhorn'
+import Dashboard from '../pages/c/_cluster/index.vue';
+import ListLonghornResource from '../pages/c/_cluster/_resource/index.vue';
+import CreateLonghornResource from '../pages/c/_cluster/_resource/create.vue';
+import ViewLonghornResourced from '../pages/c/_cluster/_resource/_id.vue';
+import ViewLonghornNamespacedResource from '../pages/c/_cluster/_resource/_namespace/_id.vue';
 
 const CUSTOM_PAGE_NAME = 'page1';
 
@@ -18,25 +18,25 @@ const routes = [
   {
     name:      `c-cluster-${ PRODUCT_NAME }-resource`,
     path:      `/c/:cluster/${ PRODUCT_NAME }/:resource`,
-    component: ListResource,
+    component: ListLonghornResource,
     meta:      { product: PRODUCT_NAME },
   },
   {
     name:      `c-cluster-${ PRODUCT_NAME }-resource-create`,
     path:      `/c/:cluster/${ PRODUCT_NAME }/:resource/create`,
-    component: CreateResource,
+    component: CreateLonghornResource,
     meta:      { product: PRODUCT_NAME },
   },
   {
     name:      `c-cluster-${ PRODUCT_NAME }-resource-id`,
     path:      `/c/:cluster/${ PRODUCT_NAME }/:resource/:id`,
-    component: ViewResource,
+    component: ViewLonghornResourced,
     meta:      { product: PRODUCT_NAME },
   },
   {
     name:      `c-cluster-${ PRODUCT_NAME }-resource-namespace-id`,
     path:      `/:cluster/${ PRODUCT_NAME }/:resource/:namespace/:id`,
-    component: ViewNamespacedResource,
+    component: ViewLonghornNamespacedResource,
     meta:      { product: PRODUCT_NAME },
   }
 ];
