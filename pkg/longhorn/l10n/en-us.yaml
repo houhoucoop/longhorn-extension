@@ -1,3 +1,5 @@
 longhorn:
   dashboard:
     title: Dashboard
+  nodes:
+    title: Nodes (Custom page)

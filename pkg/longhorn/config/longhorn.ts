@@ -1,5 +1,5 @@
 import { IPlugin } from '@shell/core/types';
-import { PRODUCT_NAME, LONGHORN_DASHBOARD, LONGHORN_RESOURCES } from '../types/longhorn'
+import { PRODUCT_NAME, LONGHORN_DASHBOARD, LONGHORN_NODES, LONGHORN } from '../types/longhorn'
 
 export function init($plugin: IPlugin, store: any) {
   const CUSTOM_PAGE_NAME = 'page1';
@@ -25,6 +25,16 @@ export function init($plugin: IPlugin, store: any) {
     }
   });
 
+  virtualType({
+    label:       store.getters['i18n/t']('longhorn.nodes.title'),
+    name:        LONGHORN_NODES,
+    route:  {
+      name:   `c-cluster-${ PRODUCT_NAME }-${ LONGHORN_NODES }`,
+      params: { product: PRODUCT_NAME }
+    }
+  });
+
+
   // registering the defined pages as side-menu entries
-  basicType([LONGHORN_DASHBOARD, LONGHORN_RESOURCES.NODE]);
+  basicType([LONGHORN_DASHBOARD, LONGHORN.NODE, LONGHORN_NODES]);
 }

@@ -1,5 +1,6 @@
-import { PRODUCT_NAME } from '../types/longhorn'
+import { PRODUCT_NAME, LONGHORN_DASHBOARD, LONGHORN_NODES } from '../types/longhorn'
 import Dashboard from '../pages/c/_cluster/index.vue';
+import Nodes from '../pages/c/_cluster/nodes.vue';
 import ListLonghornResource from '../pages/c/_cluster/_resource/index.vue';
 import CreateLonghornResource from '../pages/c/_cluster/_resource/create.vue';
 import ViewLonghornResourced from '../pages/c/_cluster/_resource/_id.vue';
@@ -17,10 +18,16 @@ const routes = [
     meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
   },
   {
-    name:       `c-cluster-${ PRODUCT_NAME }-dashboard`,
-    path:       `/c/:cluster/${ PRODUCT_NAME }/dashboard`,
+    name:       `c-cluster-${ PRODUCT_NAME }-${LONGHORN_DASHBOARD}`,
+    path:       `/c/:cluster/${ PRODUCT_NAME }/${LONGHORN_DASHBOARD}`,
     component:  Dashboard,
     meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
+  },
+  {
+    name:       `c-cluster-${ PRODUCT_NAME }-${LONGHORN_NODES}`,
+    path:       `/c/:cluster/${ PRODUCT_NAME }/${LONGHORN_NODES}`,
+    component:  Nodes,
+    meta:       { product: PRODUCT_NAME }
   },
   // registering routes for list/edit/create views
   {

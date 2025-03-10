@@ -19,12 +19,9 @@ export default {
     },
   },
 
-  async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: this.resource });
-  },
-
   computed: {
     rows() {
+      console.log("🚀🚀🚀🚀🚀 ~ rows ~ this.$store.getters['cluster/all'](this.resource):", this.$store.getters['cluster/all'](this.resource))
       return this.$store.getters['cluster/all'](this.resource);
     }
   }
