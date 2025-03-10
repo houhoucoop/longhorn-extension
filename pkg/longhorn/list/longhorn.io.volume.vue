@@ -21,7 +21,7 @@ export default {
 
   computed: {
     rows() {
-      console.log("🚀🚀🚀🚀🚀 ~ rows ~ this.$store.getters['cluster/all'](this.resource):", this.$store.getters['cluster/all'](this.resource))
+      console.log("🚀🚀🚀🚀🚀 ~ rows ~ this.$store.getters['cluster/all'](this.resource):", this)
       return this.$store.getters['cluster/all'](this.resource);
     }
   }
@@ -33,7 +33,6 @@ export default {
   <div v-else>
     <ResourceTable
       :rows="rows"
-			:schema="schema"
     />
   </div>
 </template>

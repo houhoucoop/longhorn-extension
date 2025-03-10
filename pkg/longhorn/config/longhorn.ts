@@ -1,40 +1,63 @@
-import { IPlugin } from '@shell/core/types';
-import { PRODUCT_NAME, LONGHORN_DASHBOARD, LONGHORN_NODES, LONGHORN_RESOURCES } from '../types/longhorn'
+import {
+  PRODUCT_NAME,
+  LONGHORN_DASHBOARD,
+  LONGHORN_RESOURCES,
+} from "../types/longhorn";
 
-export function init($plugin: IPlugin, store: any) {
-  const CUSTOM_PAGE_NAME = 'page1';
-
-  const {
-    product,
-    basicType,
-    virtualType
-  } = $plugin.DSL(store, PRODUCT_NAME);
+export function init($plugin: any, store: any) {
+  const { product, basicType, spoofedType, configureType, virtualType } = $plugin.DSL(
+    store,
+    PRODUCT_NAME
+  );
 
   product({
-    icon:    'longhorn',
+    removable: true,
+    public: true,
+    icon: "longhorn",
     inStore: 'cluster',
   });
 
-  // TODO: replace the dashboard page when the config is removed from the shell
-  virtualType({
-    label:       store.getters['i18n/t']('longhorn.dashboard.title'),
-    name:        LONGHORN_DASHBOARD,
-    route:  {
-      name:   `c-cluster-${ PRODUCT_NAME }-${ LONGHORN_DASHBOARD }`,
-      params: { product: PRODUCT_NAME }
-    }
+  spoofedType({
+    label: "Nodes (Custom)",
+    name: "nodes",
+    type: "nodes",
+    product: PRODUCT_NAME,
+    schemas: [
+      {
+        id: "nodes",
+        type: "schema",
+        attributes: {
+          kind: "nodes",
+          namespaced: true
+        },
+        metadata: { name: 'nodes' },
+        collectionMethods: [],
+        resourceFields: {},
+      },
+    ],
   });
 
-  virtualType({
-    label:       store.getters['i18n/t']('longhorn.nodes.title'),
-    name:        LONGHORN_NODES,
-    route:  {
-      name:   `c-cluster-${ PRODUCT_NAME }-${ LONGHORN_NODES }`,
-      params: { product: PRODUCT_NAME }
+  configureType(LONGHORN_RESOURCES.VOLUME, {
+    displayName: 'nodes',
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    showAge:     true,
+    showState:   true,
+    canYaml:     true,
+    customRoute: {
+      name: `c-cluster-${ PRODUCT_NAME }-resource`,
+      params: {
+        product: PRODUCT_NAME,
+        resource: LONGHORN_RESOURCES.VOLUME
+      }
     }
   });
-
 
   // registering the defined pages as side-menu entries
-  basicType([LONGHORN_DASHBOARD, LONGHORN_RESOURCES.NODE, LONGHORN_NODES]);
+  basicType([
+    LONGHORN_DASHBOARD,
+    "nodes",
+    LONGHORN_RESOURCES.VOLUME,
+  ]);
 }

@@ -1,7 +1,14 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
-import longhornStore from './store/longhorn';
+import { IPlugin, OnNavToPackage, OnNavAwayFromPackage } from '@shell/core/types';
+import longhornStore from './store';
 import longhornRoutes from './routes/longhorn';
+
+const onEnter: OnNavToPackage = async(store, config) => {
+  // define any function needed here for `onEnter`
+};
+const onLeave: OnNavAwayFromPackage = async(store, config) => {
+  // define any function needed here for `onLeave`
+};
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -20,4 +27,7 @@ export default function(plugin: IPlugin) {
 
   // Add Vue Routes
   plugin.addRoutes(longhornRoutes);
+
+  // Add hooks to Vue navigation world
+  plugin.addNavHooks(onEnter, onLeave);
 }

@@ -9,7 +9,7 @@ export default {
   name: 'Dashboard',
 
   async fetch() {
-    if ( this.$store.getters['cluster/schemaFor'](SERVICE) ) {
+    if (this.$store.getters['cluster/schemaFor'](SERVICE)) {
       this.uiServices = await this.$store.dispatch('cluster/findMatching', {
         type:     SERVICE,
         selector: 'app=longhorn-ui'
@@ -44,7 +44,6 @@ export default {
     }
   }
 };
-
 </script>
 
 <template>
