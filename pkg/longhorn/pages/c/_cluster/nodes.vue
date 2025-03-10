@@ -1,7 +1,7 @@
 <script>
 import axios from 'axios';
 import ResourceTable from '@shell/components/ResourceTable';
-import { LONGHORN } from '../../../types/longhorn'
+import { LONGHORN_RESOURCES } from '../../../types/longhorn'
 import { NAME, AGE, NAMESPACE, STATE } from '@shell/config/table-headers';
 
 export default {
@@ -15,7 +15,7 @@ export default {
     console.log("🚀🚀🚀🚀🚀 ~ data ~ rows:", this)
     return {
       nodes: [],
-      schema: this.$store.getters[`cluster/schemaFor`](LONGHORN.NODE),
+      schema: this.$store.getters[`cluster/schemaFor`](LONGHORN_RESOURCES.NODE),
       headers: [
         {
           name: "name",

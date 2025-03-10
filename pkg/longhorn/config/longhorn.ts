@@ -1,5 +1,5 @@
 import { IPlugin } from '@shell/core/types';
-import { PRODUCT_NAME, LONGHORN_DASHBOARD, LONGHORN_NODES, LONGHORN } from '../types/longhorn'
+import { PRODUCT_NAME, LONGHORN_DASHBOARD, LONGHORN_NODES, LONGHORN_RESOURCES } from '../types/longhorn'
 
 export function init($plugin: IPlugin, store: any) {
   const CUSTOM_PAGE_NAME = 'page1';
@@ -36,5 +36,5 @@ export function init($plugin: IPlugin, store: any) {
 
 
   // registering the defined pages as side-menu entries
-  basicType([LONGHORN_DASHBOARD, LONGHORN.NODE, LONGHORN_NODES]);
+  basicType([LONGHORN_DASHBOARD, LONGHORN_RESOURCES.NODE, LONGHORN_NODES]);
 }
