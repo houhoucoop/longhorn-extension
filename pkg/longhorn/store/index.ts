@@ -28,7 +28,8 @@ const longhornFactory = (): CoreStoreSpecifics => {
 
 const config: CoreStoreConfig = {
 	namespace: PRODUCT_NAME,
-  isClusterStore: true
+  // this can't be used... It appears that we cannot "extend" the cluster store
+  // isClusterStore: true
 };
 
 export default {
