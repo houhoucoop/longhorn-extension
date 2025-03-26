@@ -12,6 +12,8 @@ import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
 import { createNamespaceFilterKeyWithId } from '@shell/utils/namespace-filter';
 import { longhornfy } from '../utils/store'
+import { reactive } from 'vue';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 
 export default {
   async loadCluster({ state, commit, dispatch, getters, rootGetters, rootState }: any, { id }: any) {
@@ -68,8 +70,8 @@ export default {
     return all;
   },
 
-  async request(context: any, { opt, type, clusterId, growlOnError = false }: any) {
-    const { rootGetters, dispatch, getters, state, commit } = context;
+  async request(ctx: any, { opt, type, clusterId, growlOnError = false }: any) {
+    const { rootGetters, dispatch, getters, state, commit } = ctx;
 
     opt.url = opt.url.replace(/\/*$/g, '');
     const baseUrl = opt?.prependPath || state.config?.baseUrl || '';
@@ -98,17 +100,36 @@ export default {
           const out = res.data || {};
           const schema = getters["schemaFor"](type);
 
-          if (Array.isArray(out)) {
-            res.data = { data: out.map((o) => longhornfy(o, schema, type)) };
-          } else {
-            res.data = longhornfy(out, schema, type);
-          }
+          res.data = Array.isArray(out)
+            ? { data: out.map((o) => longhornfy(o, schema, type)) }
+            : longhornfy(out, schema, type);
 
           if (opt?.shouldMapResources) {
-            commit('mapResources', responseObject(res))
-            return getters[type]
+            const rawData = res.data?.data ?? res.data;
+            const mappingResource = rawData.map((node) => {
+              return {
+                id: node.id,
+                kind: 'Node',
+                links: node.links,
+                type: node.type,
+                spec: {
+                  allowScheduling: node.allowScheduling,
+                  name: node.name
+                },
+                status: {
+                  autoEvicting: node.autoEvicting,
+                  conditions: node.conditions,
+                  disks: node.disks,
+                  evictionRequested: node.evictionRequested,
+                  instanceManagerCPURequest: node.instanceManagerCPURequest,
+                  region: node.region,
+                  tags: node.tags,
+                  zone: node.zone
+                }
+              }
+            })
+            return reactive(mappingResource.map((x: any) => classify(ctx, x)));
           }
-
           return responseObject(res)
         }
       }).catch((err) => {

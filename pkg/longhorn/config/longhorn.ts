@@ -14,7 +14,7 @@ export function init($plugin: any, store: any) {
     removable: true,
     public: true,
     icon: "longhorn",
-    inStore: 'cluster',
+    inStore: PRODUCT_NAME,
   });
 
   spoofedType({
@@ -27,18 +27,17 @@ export function init($plugin: any, store: any) {
         id: "nodes",
         type: "schema",
         attributes: {
-          kind: "nodes",
+          kind: "Nodes",
           namespaced: true
         },
-        metadata: { name: 'nodes' },
         collectionMethods: [],
         resourceFields: {},
       },
     ],
   });
 
-  configureType(LONGHORN_RESOURCES.VOLUME, {
-    displayName: 'nodes',
+  configureType(LONGHORN_RESOURCES.NODE, {
+    displayName: 'resourceNodes',
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
@@ -49,7 +48,7 @@ export function init($plugin: any, store: any) {
       name: `c-cluster-${ PRODUCT_NAME }-resource`,
       params: {
         product: PRODUCT_NAME,
-        resource: LONGHORN_RESOURCES.VOLUME
+        resource: LONGHORN_RESOURCES.NODE
       }
     }
   });
@@ -58,6 +57,6 @@ export function init($plugin: any, store: any) {
   basicType([
     LONGHORN_DASHBOARD,
     "nodes",
-    LONGHORN_RESOURCES.VOLUME,
+    LONGHORN_RESOURCES.NODE
   ]);
 }

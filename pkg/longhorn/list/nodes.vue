@@ -43,7 +43,7 @@ export default {
 
   computed: {
     rows() {
-      console.log("🚀🚀🚀🚀🚀 ~ fetch ~ this:", this?.rows)
+      console.log("🚀🚀🚀🚀🚀 ~ rows ~ this:", this)
       return this.rows;
     },
   }
