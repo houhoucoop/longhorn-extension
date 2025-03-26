@@ -1,6 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
+import { STATE, NAME as NAME_COL, AGE } from '@shell/config/table-headers';
 
 export default {
 	components: {
@@ -19,9 +20,21 @@ export default {
     },
   },
 
+  data() {
+    return {
+      // we were missing the headers here to display the list view
+      headers: [
+        STATE,
+        NAME_COL,
+        AGE
+      ]
+    }
+  },
+
   computed: {
     rows() {
-      console.log("🚀🚀🚀🚀🚀 ~ rows ~ this.$store.getters['cluster/all'](this.resource):", this)
+      console.error("🚀🚀🚀🚀🚀 ~ rows ~ this.resource:", this.resource)
+      console.error("🚀🚀🚀🚀🚀 ~ rows ~ this.$store.getters['cluster/all'](this.resource):", this)
       return this.$store.getters['cluster/all'](this.resource);
     }
   }
@@ -33,6 +46,7 @@ export default {
   <div v-else>
     <ResourceTable
       :rows="rows"
+      :headers="headers"
     />
   </div>
 </template>
