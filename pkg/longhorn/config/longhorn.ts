@@ -1,7 +1,7 @@
 import {
   PRODUCT_NAME,
   LONGHORN_DASHBOARD,
-  LONGHORN_RESOURCES,
+  LONGHORN_PAGES,
 } from "../types/longhorn";
 
 export function init($plugin: any, store: any) {
@@ -19,15 +19,15 @@ export function init($plugin: any, store: any) {
 
   spoofedType({
     label: "Nodes (Custom)",
-    name: LONGHORN_RESOURCES.NODE,
-    type: LONGHORN_RESOURCES.NODE,
+    name: LONGHORN_PAGES.NODE,
+    type: LONGHORN_PAGES.NODE,
     product: PRODUCT_NAME,
     schemas: [
       {
-        id: LONGHORN_RESOURCES.NODE,
+        id: LONGHORN_PAGES.NODE,
         type: "schema",
         attributes: {
-          kind: LONGHORN_RESOURCES.NODE,
+          kind: LONGHORN_PAGES.NODE,
           namespaced: true
         },
         metadata: { name: 'nodes' },
@@ -35,46 +35,26 @@ export function init($plugin: any, store: any) {
         resourceFields: {},
       },
     ],
-    // this method allows you to load the resource instances for the spoofed type...
     getInstances: async() => {
-      // this commented out code is another way of loading whatever represents LONGHORN_RESOURCES.VOLUME
-      //
-      // let resources = [];
-
-      // if (store.getters['cluster/schemaFor'](LONGHORN_RESOURCES.VOLUME)) {
-      //   resources = await store.dispatch('cluster/findAll', { type: LONGHORN_RESOURCES.VOLUME });
-      // }
-
-      // console.error('RESOURCES LOAD FOR SPOOFED TYPE', resources)
-
-      // return resources;
-
       const inStore = store.getters['currentProduct'].inStore;
-      console.error('getInstances inStore', inStore)
       const res = await store.dispatch(`${inStore}/request`, {
         opt: {
-          prependPath: '/k8s/clusters/c-nxn6c/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy',
-          url: '/v1/nodes',
-          shouldMapResources: true,
-        },
-        type: 'nodes'
+          url: '/k8s/clusters/c-nxn6c/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/v1/nodes',
+        }
       });
-
-      console.error('getInstances res', res)
 
       return res.data
     },
-    // this is needed so that the browser refresh works on this page
     route:      {
       name:   `c-cluster-${ PRODUCT_NAME }-resource`,
       params: {
         product: PRODUCT_NAME,
-        resource: LONGHORN_RESOURCES.NODE,
+        resource: LONGHORN_PAGES.NODE,
       }
     },
   });
 
-  configureType(LONGHORN_RESOURCES.VOLUME, {
+  configureType(LONGHORN_PAGES.VOLUME, {
     displayName: 'volumes',
     isCreatable: true,
     isEditable:  true,
@@ -86,15 +66,15 @@ export function init($plugin: any, store: any) {
       name: `c-cluster-${ PRODUCT_NAME }-resource`,
       params: {
         product: PRODUCT_NAME,
-        resource: LONGHORN_RESOURCES.VOLUME
+        resource: LONGHORN_PAGES.VOLUME
       }
     }
   });
 
   // registering the defined pages as side-menu entries
   basicType([
-    LONGHORN_DASHBOARD, // this isn't doing anything if don't register a virtualType page to display a custom view for longhorn dashboard
-    LONGHORN_RESOURCES.NODE,
-    LONGHORN_RESOURCES.VOLUME,
+    LONGHORN_DASHBOARD,
+    LONGHORN_PAGES.NODE,
+    LONGHORN_PAGES.VOLUME,
   ]);
 }
