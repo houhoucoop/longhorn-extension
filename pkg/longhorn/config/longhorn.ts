@@ -1,11 +1,9 @@
-import {
-  PRODUCT_NAME,
-  LONGHORN_DASHBOARD,
-  LONGHORN_RESOURCES,
-} from "../types/longhorn";
+import { PRODUCT_NAME, LONGHORN_PAGES } from "../types/longhorn";
+import { LONGHORN_RESOURCES } from "../types/resources";
+import { ENGINE_IMAGES_HEADER } from "./table-headers";
 
 export function init($plugin: any, store: any) {
-  const { product, basicType, spoofedType, configureType, virtualType } = $plugin.DSL(
+  const { product, basicType, configureType, mapType, headers } = $plugin.DSL(
     store,
     PRODUCT_NAME
   );
@@ -14,49 +12,22 @@ export function init($plugin: any, store: any) {
     removable: true,
     public: true,
     icon: "longhorn",
-    inStore: PRODUCT_NAME,
+    inStore: "cluster",
   });
 
-  spoofedType({
-    label: "Nodes (Custom)",
-    name: "nodes",
-    type: "nodes",
-    product: PRODUCT_NAME,
-    schemas: [
-      {
-        id: "nodes",
-        type: "schema",
-        attributes: {
-          kind: "Nodes",
-          namespaced: true
-        },
-        collectionMethods: [],
-        resourceFields: {},
-      },
-    ],
+  configureType(LONGHORN_RESOURCES.ENGINE_IMAGES, {
+    isEditable: false,
+    showAge: false,
+    canYaml: false,
   });
-
-  configureType(LONGHORN_RESOURCES.NODE, {
-    displayName: 'resourceNodes',
-    isCreatable: true,
-    isEditable:  true,
-    isRemovable: true,
-    showAge:     true,
-    showState:   true,
-    canYaml:     true,
-    customRoute: {
-      name: `c-cluster-${ PRODUCT_NAME }-resource`,
-      params: {
-        product: PRODUCT_NAME,
-        resource: LONGHORN_RESOURCES.NODE
-      }
-    }
-  });
+  mapType(LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_PAGES.ENGINE_IMAGES);
+  headers(LONGHORN_RESOURCES.ENGINE_IMAGES, ENGINE_IMAGES_HEADER);
 
   // registering the defined pages as side-menu entries
   basicType([
-    LONGHORN_DASHBOARD,
-    "nodes",
-    LONGHORN_RESOURCES.NODE
+    LONGHORN_RESOURCES.NODES,
+    LONGHORN_RESOURCES.VOLUMES,
+    LONGHORN_RESOURCES.ENGINE_IMAGES,
+    // LONGHORN_PAGES.ENGINE_IMAGES
   ]);
 }
