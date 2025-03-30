@@ -2,6 +2,7 @@ import {
   PRODUCT_NAME,
   LONGHORN_DASHBOARD,
   LONGHORN_PAGES,
+  LONGHORN_RESOURCES
 } from "../types/longhorn";
 
 export function init($plugin: any, store: any) {
@@ -28,7 +29,6 @@ export function init($plugin: any, store: any) {
         type: "schema",
         attributes: {
           kind: LONGHORN_PAGES.NODE,
-          namespaced: true
         },
         metadata: { name: 'nodes' },
         collectionMethods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -36,14 +36,14 @@ export function init($plugin: any, store: any) {
       },
     ],
     getInstances: async() => {
-      const inStore = store.getters['currentProduct'].inStore;
-      const res = await store.dispatch(`${inStore}/request`, {
+      const currentStore = store.getters['currentProduct'].inStore;
+      const response = await store.dispatch(`${currentStore}/request`, {
         opt: {
           url: '/k8s/clusters/c-nxn6c/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/v1/nodes',
-        }
+        },
       });
-
-      return res.data
+      const formattedNodes = await store.dispatch(`${PRODUCT_NAME}/formatNodes`, response);
+      return formattedNodes?.data || [];
     },
     route:      {
       name:   `c-cluster-${ PRODUCT_NAME }-resource`,
@@ -54,7 +54,7 @@ export function init($plugin: any, store: any) {
     },
   });
 
-  configureType(LONGHORN_PAGES.VOLUME, {
+  configureType(LONGHORN_RESOURCES.VOLUME, {
     displayName: 'volumes',
     isCreatable: true,
     isEditable:  true,
@@ -66,7 +66,7 @@ export function init($plugin: any, store: any) {
       name: `c-cluster-${ PRODUCT_NAME }-resource`,
       params: {
         product: PRODUCT_NAME,
-        resource: LONGHORN_PAGES.VOLUME
+        resource: LONGHORN_RESOURCES.VOLUME
       }
     }
   });
@@ -75,6 +75,6 @@ export function init($plugin: any, store: any) {
   basicType([
     LONGHORN_DASHBOARD,
     LONGHORN_PAGES.NODE,
-    LONGHORN_PAGES.VOLUME,
+    LONGHORN_RESOURCES.VOLUME,
   ]);
 }

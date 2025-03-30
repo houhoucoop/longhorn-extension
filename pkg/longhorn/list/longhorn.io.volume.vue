@@ -33,9 +33,8 @@ export default {
 
   computed: {
     rows() {
-      console.error("🚀🚀🚀🚀🚀 ~ rows ~ this.resource:", this.resource)
-      console.error("🚀🚀🚀🚀🚀 ~ rows ~ this.$store.getters['cluster/all'](this.resource):", this)
-      return this.$store.getters['cluster/all'](this.resource);
+      const volumes = this.$store.getters['cluster/all'](this.resource)
+      return volumes;
     }
   }
 };

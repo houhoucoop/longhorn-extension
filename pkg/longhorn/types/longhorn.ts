@@ -6,3 +6,7 @@ export const LONGHORN_PAGES = {
     NODE: 'node',
     VOLUME: 'volume'
 }
+
+export const LONGHORN_RESOURCES = {
+    VOLUME: 'longhorn.io.volume'
+}
