@@ -36,13 +36,25 @@ export function init($plugin: any, store: any) {
       },
     ],
     getInstances: async() => {
+      const baseURL = `/k8s/clusters/c-nxn6c/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/v1`
+
+      // fetch node data from the API
       const currentStore = store.getters['currentProduct'].inStore;
       const response = await store.dispatch(`${currentStore}/request`, {
-        opt: {
-          url: '/k8s/clusters/c-nxn6c/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/v1/nodes',
-        },
+        opt: { url: `${baseURL}/nodes` },
       });
+
+      // format the fetched node data
       const formattedNodes = await store.dispatch(`${PRODUCT_NAME}/formatNodes`, response);
+
+      // start watching for node updates via WebSocket
+      await store.dispatch(`${PRODUCT_NAME}/subscribe`, {
+        opt: {
+          type: LONGHORN_PAGES.NODE,
+          url: `${baseURL}/ws/1s/nodes`,
+        },
+      })
+
       return formattedNodes?.data || [];
     },
     route:      {

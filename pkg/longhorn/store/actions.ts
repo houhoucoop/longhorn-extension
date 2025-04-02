@@ -1,5 +1,5 @@
 export default {
-	formatNodes: (ctx, res) => {
+	formatNodes: (ctx: any, res: any) => {
 		const data = res?.data.map((node: any) => {
 			return ({
 				id: node.id,

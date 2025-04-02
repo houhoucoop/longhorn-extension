@@ -5,6 +5,7 @@ import getters from './getters';
 import mutations from './mutations';
 import actions from './actions';
 import { PRODUCT_NAME } from '../types/longhorn';
+import { actions as subscribeActions, getters as subscribeGetters } from './subscribe-shims';
 
 const longhornFactory = (): CoreStoreSpecifics => {
   return {
@@ -14,6 +15,7 @@ const longhornFactory = (): CoreStoreSpecifics => {
 
     getters: {
       ...getters,
+      ...subscribeGetters
     },
 
     mutations: {
@@ -22,6 +24,7 @@ const longhornFactory = (): CoreStoreSpecifics => {
 
     actions: {
       ...actions,
+      ...subscribeActions
     },
   };
 };

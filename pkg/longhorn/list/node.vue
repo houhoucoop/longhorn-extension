@@ -2,55 +2,49 @@
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import { STATE, NAME as NAME_COL, AGE } from '@shell/config/table-headers';
-import { PRODUCT_NAME } from '../types/longhorn';
 
 export default {
-	components: {
+  components: {
     Loading,
-		ResourceTable
+    ResourceTable
   },
 
   props: {
     resource: {
-      type:     String,
+      type: String,
       required: true,
     },
     schema: {
-      type:     Object,
+      type: Object,
       required: true,
     },
   },
 
-	async fetch () {
+  async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
-    const nodes = await this.$store.dispatch(`${ inStore }/findAll`, { type: this.resource })
-		this.rows = nodes
-	},
+    const nodes = await this.$store.dispatch(`${inStore}/findAll`, { type: this.resource });
+    this.rows = nodes;
+  },
 
   data() {
     return {
-      // we were missing the headers here to display the list view
-      headers: [
-        STATE,
-        NAME_COL,
-        AGE
-      ],
-			rows: []
-    }
+      headers: [STATE, NAME_COL, AGE],
+      rows: []
+    };
   },
 
   computed: {
-
+    renderAllowScheduling() {
+      return this.rows.some((node) => node.spec?.allowScheduling);
+    }
   }
 };
 </script>
 
 <template>
-	<Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <ResourceTable
-      :rows="rows"
-      :headers="headers"
-    />
+    <ResourceTable :rows="rows" :headers="headers" />
+    <p>{{ renderAllowScheduling ? 'renderAllowScheduling: true' : 'renderAllowScheduling: false' }}</p>
   </div>
 </template>
