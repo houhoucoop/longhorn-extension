@@ -57,8 +57,8 @@ export function init($plugin: any, store: any) {
 
       return formattedNodes?.data || [];
     },
-    route:      {
-      name:   `c-cluster-${ PRODUCT_NAME }-resource`,
+    route: {
+      name: `c-cluster-${ PRODUCT_NAME }-resource`,
       params: {
         product: PRODUCT_NAME,
         resource: LONGHORN_PAGES.NODE,
