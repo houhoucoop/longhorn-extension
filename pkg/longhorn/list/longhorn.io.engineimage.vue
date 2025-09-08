@@ -44,12 +44,6 @@ export default {
       rows: [],
     };
   },
-
-  computed: {
-    rows() {
-      return this.rows;
-    },
-  },
 };
 </script>
 

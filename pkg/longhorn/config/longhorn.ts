@@ -13,21 +13,16 @@ export function init($plugin: any, store: any) {
     public: true,
     icon: "longhorn",
     inStore: "cluster",
+    inExplorer: false,
   });
 
   configureType(LONGHORN_RESOURCES.ENGINE_IMAGES, {
     isEditable: false,
-    showAge: false,
     canYaml: false,
   });
   mapType(LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_PAGES.ENGINE_IMAGES);
   headers(LONGHORN_RESOURCES.ENGINE_IMAGES, ENGINE_IMAGES_HEADER);
 
   // registering the defined pages as side-menu entries
-  basicType([
-    LONGHORN_RESOURCES.NODES,
-    LONGHORN_RESOURCES.VOLUMES,
-    LONGHORN_RESOURCES.ENGINE_IMAGES,
-    // LONGHORN_PAGES.ENGINE_IMAGES
-  ]);
+  basicType([LONGHORN_RESOURCES.ENGINE_IMAGES]);
 }

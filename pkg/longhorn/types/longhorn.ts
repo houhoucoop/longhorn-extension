@@ -7,6 +7,8 @@ export const LONGHORN_PAGES = {
 };
 
 export const AVAILABLE_ACTIONS = {
+  EDIT: "goToEdit",
+  EDIT_YAML: "goToEditYaml",
   CLONE: "goToClone",
   DELETE: "promptRemove",
 };

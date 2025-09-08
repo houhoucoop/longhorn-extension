@@ -1,14 +1,11 @@
 import LonghornModel from "./longhorn";
-import {
-  LONGHORN_RESOURCES,
-  LONGHORN_RESOURCE_IDS,
-  AVAILABLE_ACTIONS
-} from "../types/longhorn.ts";
+import { AVAILABLE_ACTIONS } from "../types/longhorn";
+import { LONGHORN_RESOURCES, LONGHORN_RESOURCE_IDS } from "../types/resources";
 
 export default class EngineImageModel extends LonghornModel {
   get availableActions() {
     const out = super._availableActions
-      .filter(action => action.action !== AVAILABLE_ACTIONS.CLONE)
+      .filter((action) => ![AVAILABLE_ACTIONS.CLONE].includes(action.action))
       .map((action) => {
         if (action.action === AVAILABLE_ACTIONS.DELETE) {
           return { ...action, enabled: !this.isDefault };

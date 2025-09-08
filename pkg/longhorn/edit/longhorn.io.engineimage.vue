@@ -67,7 +67,7 @@ export default {
     async save(buttonDone) {
       this.errors = [];
 
-      if (!this.image) {
+      if (!this.value.spec.image) {
         this.errors.push(
           this.t("longhorn.engineImage.form.validation.imageRequired")
         );

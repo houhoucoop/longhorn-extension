@@ -47,14 +47,23 @@ export default {
 
   computed: {
     nodeDeploymentMap() {
-      if (!this.value?.status?.nodeDeploymentMap) {
-        return [];
-      }
+      const map = this.value?.status?.nodeDeploymentMap;
+      if (!map) return "-";
 
-      return Object.entries(this.value.status.nodeDeploymentMap)
-        .filter(([key, val]) => val === true)
+      const result = Object.entries(map)
+        .filter(([, val]) => val === true)
         .map(([key]) => key)
         .join(", ");
+
+      return this.displayValue(result);
+    },
+  },
+
+  methods: {
+    displayValue(val) {
+      return val === null || val === undefined || String(val).trim() === ""
+        ? "-"
+        : val;
     },
   },
 };
@@ -75,35 +84,35 @@ export default {
       <Tab name="basics" labelKey="longhorn.engineImage.tab.basics">
         <LabelValue
           :name="t('longhorn.engineImage.fields.image')"
-          :value="value.spec.image"
+          :value="displayValue(value?.spec?.image)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.status')"
-          :value="value.status.state"
+          :value="displayValue(value?.status?.state)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.default')"
-          :value="`${value.isDefault}`"
+          :value="displayValue(`${value?.isDefault}`)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.refCount')"
-          :value="value.status.refCount"
+          :value="displayValue(value?.status?.refCount)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.buildDate')"
-          :value="value.status.buildDate"
+          :value="displayValue(value?.status?.buildDate)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.cliAPIVersion')"
-          :value="value.status.cliAPIVersion"
+          :value="displayValue(value?.status?.cliAPIVersion)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.controllerAPIVersion')"
-          :value="value.status.controllerAPIVersion"
+          :value="displayValue(value?.status?.controllerAPIVersion)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.noRefSince')"
-          :value="value.status.noRefSince || '-'"
+          :value="displayValue(value?.status?.noRefSince)"
         />
         <LabelValue
           :name="t('longhorn.engineImage.fields.nodeDeploymentMap')"
