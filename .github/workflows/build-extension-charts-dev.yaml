@@ -1,99 +1,123 @@
-name: Build Extension Charts to Dev Pages
+name: Build Extension Charts on PR Merge
 
 on:
   push:
     branches:
-      - main
+      - 'release-*'
+      - 'main'
 
 permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  extract-version:
     runs-on: ubuntu-latest
-    env:
-      TARGET_BRANCH: gh-pages-dev
-
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
-      # 1. Checkout repository
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Determine dev version
-      - name: Determine version
-        id: set_version
+      - name: Extract version from package.json
+        id: get_version
         run: |
-          SHORT_SHA=$(echo ${GITHUB_SHA} | cut -c1-7)
-          BASE_VERSION=$(jq -r '.version' pkg/longhorn/package.json)
-          VERSION="${BASE_VERSION}-dev.${SHORT_SHA}"
+          VERSION=$(jq -r '.version' pkg/longhorn/package.json)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "Using version: $VERSION"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-      # 3. Bump package.json version
-      - name: Bump package.json version
-        run: |
-          jq --arg v "$VERSION" '.version=$v' pkg/longhorn/package.json > pkg/longhorn/package.json.tmp
-          mv pkg/longhorn/package.json.tmp pkg/longhorn/package.json
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pkg/longhorn/package.json
-          git commit -m "chore: bump longhorn extension version to $VERSION" || echo "No changes to commit"
+  build-extension-charts:
+    needs: extract-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # 4. Setup Node & Yarn
       - name: Setup Node & Yarn
         run: |
           corepack enable
           yarn install --frozen-lockfile
 
-      # 5. Setup Helm
       - name: Setup Helm
         uses: azure/setup-helm@v3
         with:
           version: v3.8.0
 
-      # 6. Build Helm charts
       - name: Build Helm charts
         run: |
-          yarn publish-pkgs -s ${{ github.repository }} -b ${{ env.TARGET_BRANCH }} -t longhorn-${{ env.VERSION }}
+          yarn publish-pkgs -s ${{ github.repository }} -b gh-pages-dev -t longhorn-${{ needs.extract-version.outputs.version }}
 
-      # 7. Upload charts artifact
       - name: Upload charts artifact
         uses: actions/upload-artifact@v4
         with:
           name: charts
           path: tmp
 
-      # 8. Push dev artifacts to gh-pages-dev
-      - name: Push dev artifacts
+  release:
+    needs:
+      - extract-version
+      - build-extension-charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          git clean -fd
-
-          if git ls-remote --exit-code --heads origin ${{ env.TARGET_BRANCH }}; then
-            git fetch origin ${{ env.TARGET_BRANCH }}
-            git checkout -B ${{ env.TARGET_BRANCH }} origin/${{ env.TARGET_BRANCH }}
+      - name: Ensure gh-pages-dev exists
+        run: |
+          if git ls-remote --exit-code --heads origin gh-pages-dev; then
+            git fetch origin gh-pages-dev
+            git checkout -B gh-pages-dev origin/gh-pages-dev
           else
-            git checkout --orphan ${{ env.TARGET_BRANCH }}
+            git checkout --orphan gh-pages-dev
             git rm -rf .
-            git commit --allow-empty -m "chore: initialize ${{ env.TARGET_BRANCH }} branch"
-            git push origin ${{ env.TARGET_BRANCH }}
+            git commit --allow-empty -m "chore: initialize gh-pages-dev branch"
+            git push origin gh-pages-dev
           fi
 
-          # Copy build artifacts
-          mkdir -p tmp && cp -r tmp/* ./
+      - name: Get commit hash of this build
+        id: last_commit
+        run: |
+          echo "LAST_COMMIT=$(git rev-parse $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
 
-          # Commit & push changes
-          git add ./{assets,charts,extensions,index.yaml} || echo "Nothing to commit"
-          git commit -m "Dev Build Artifacts, version: ${{ env.VERSION }}" || echo "No changes to commit"
-          git push origin HEAD:${{ env.TARGET_BRANCH }}
+      - name: Clean previous artifacts for this version
+        run: |
+          ARTIFACTS=(
+            "extensions/longhorn/${{ needs.extract-version.outputs.version }}"
+            "charts/longhorn/${{ needs.extract-version.outputs.version }}"
+            "assets/longhorn/longhorn-${{ needs.extract-version.outputs.version }}.tgz"
+          )
+          for f in "${ARTIFACTS[@]}"; do
+            if [ -e "$f" ]; then
+              rm -rf "$f"
+            fi
+          done
 
-      # 9. Run Helm chart releaser
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: charts
+          path: tmp
+
+      - name: Copy artifacts to repo
+        run: |
+          cp -r tmp/* ./
+
+      - name: Commit and push artifacts
+        run: |
+          git add ./{assets,charts,extensions,index.yaml}
+          git commit -m "chore: build artifacts (commit: ${{ env.LAST_COMMIT }}, version: ${{ needs.extract-version.outputs.version }})" || echo "No changes to commit"
+          git push origin gh-pages-dev
+
       - name: Run Helm chart releaser
         uses: helm/chart-releaser-action@v1.7.0
         with:
           charts_dir: ./charts
         env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           CR_SKIP_EXISTING: true
