@@ -1,19 +1,35 @@
-import { PRODUCT_NAME, LONGHORN_PAGES } from "../types/longhorn";
+import {
+  PRODUCT_NAME,
+  LONGHORN_PAGES,
+  LONGHORN_DASHBOARD,
+} from "../types/longhorn";
 import { LONGHORN_RESOURCES } from "../types/resources";
 import { ENGINE_IMAGES_HEADER } from "./table-headers";
 
 export function init($plugin: any, store: any) {
-  const { product, basicType, configureType, mapType, headers } = $plugin.DSL(
-    store,
-    PRODUCT_NAME
-  );
+  const { product, basicType, configureType, virtualType, mapType, headers } =
+    $plugin.DSL(store, PRODUCT_NAME);
 
   product({
+    ifHaveGroup: "longhorn.io",
     removable: true,
     public: true,
     icon: "longhorn",
     inStore: "cluster",
     inExplorer: false,
+  });
+
+  virtualType({
+    name: LONGHORN_PAGES.DASHBOARD,
+    group: "Root",
+    route: {
+      name: `c-cluster-${PRODUCT_NAME}`,
+      params: { product: PRODUCT_NAME },
+      meta: {
+        pkg: PRODUCT_NAME,
+        product: PRODUCT_NAME,
+      },
+    },
   });
 
   configureType(LONGHORN_RESOURCES.ENGINE_IMAGES, {
@@ -24,5 +40,5 @@ export function init($plugin: any, store: any) {
   headers(LONGHORN_RESOURCES.ENGINE_IMAGES, ENGINE_IMAGES_HEADER);
 
   // registering the defined pages as side-menu entries
-  basicType([LONGHORN_RESOURCES.ENGINE_IMAGES]);
+  basicType([LONGHORN_PAGES.DASHBOARD, LONGHORN_RESOURCES.ENGINE_IMAGES]);
 }
