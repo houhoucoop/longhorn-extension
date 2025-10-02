@@ -3,11 +3,10 @@ import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "@shell/composables/useI18n";
 import SemiDoughnut from "@longhorn/components/Charts/SemiDoughnut.vue";
-import AppTooltip from "@longhorn/components/Dashboard/Tooltip.vue";
 import {
   useTooltip,
   formatTooltipContent,
-} from "@longhorn/components/Charts/composable.ts";
+} from "@longhorn/components/Charts/composable";
 
 interface ChartDataset {
   data: number[];
@@ -29,41 +28,47 @@ const props = defineProps<{
 
 const { t } = useI18n(useStore());
 
-// 1. Initialize the composable
 const { showTooltip, hideTooltip } = useTooltip();
 
-// Single source of truth for hover
 const activeIndex = ref<number | null>(null);
 
 const dataset = computed(() => props.chartData.datasets[0]);
+
 const total = computed(() => {
-  if (!dataset.value) return 0;
+  if (!dataset.value) {
+    return 0;
+  }
   const sum = dataset.value.data.reduce((a, b) => a + b, 0);
   return Math.round(sum * 100) / 100;
 });
+
 const formattedValues = computed(() =>
   dataset.value.data.map((val) => {
-    if (val === 0) return "-";
+    if (val === 0) {
+      return "-";
+    }
     return props.chartData.suffix
       ? `${val} ${props.chartData.suffix}`
       : `${val}`;
   })
 );
-// 2. Create hover handlers for the metric rows
+
 function handleRowEnter(index: number, event: MouseEvent) {
-  if (dataset.value.data[index] === 0) return;
+  if (dataset.value.data[index] === 0) {
+    return;
+  }
 
   activeIndex.value = index;
 
   const content = formatTooltipContent({
     label: props.chartData.labels[index],
     value: dataset.value.data[index],
-    total: total.value ?? 0,
+    total: total.value,
     suffix: props.chartData.suffix,
     resourceNameKey: props.chartData.resourceNameKey,
     t,
   });
-  showTooltip(content, event);
+  showTooltip(content, event.currentTarget as HTMLElement);
 }
 
 function handleRowLeave() {
@@ -120,7 +125,6 @@ function handleRowLeave() {
         </div>
       </div>
     </div>
-    <AppTooltip />
   </div>
 </template>
 
@@ -154,6 +158,7 @@ function handleRowLeave() {
 .metrics-panel {
   flex: 1;
   width: 100%;
+  cursor: default;
 }
 
 .metrics-row {
@@ -165,7 +170,6 @@ function handleRowLeave() {
 
   &.active-row {
     background-color: var(--box-bg);
-    cursor: default;
   }
 }
 

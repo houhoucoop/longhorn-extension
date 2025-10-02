@@ -13,16 +13,14 @@ import { useI18n } from "@shell/composables/useI18n";
 import {
   useTooltip,
   formatTooltipContent,
-} from "@longhorn/components/Charts/composable.ts";
+} from "@longhorn/components/Charts/composable";
 
 Chart.register(DoughnutController, ArcElement, Tooltip);
 
-// --- Type Definitions ---
 type DoughnutChart = Chart<"doughnut", number[], string>;
 type OriginalIndex = number;
 type FilteredIndex = number;
 
-// --- Props / Emits ---
 const props = withDefaults(
   defineProps<{
     labels?: string[];
@@ -38,18 +36,31 @@ const emit = defineEmits<{
   (e: "update:activeIndex", value: OriginalIndex | null): void;
 }>();
 
-// --- Initialization ---
 const store = useStore();
 const { t } = useI18n(store);
 const { showTooltip, hideTooltip } = useTooltip();
 
-// --- Refs ---
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chartInstance: DoughnutChart | null = null;
-const hoverOffset = 2;
 const isMouseOutside = ref(true);
+const borderColor = ref("");
+const hoverBorderColor = ref("");
 
-// --- State Management ---
+function round(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function updateColorsFromTheme() {
+  if (typeof window !== "undefined") {
+    const bodyStyles = getComputedStyle(document.body);
+    const bg = bodyStyles.getPropertyValue("--body-bg").trim();
+    const border = bodyStyles.getPropertyValue("--box-bg").trim();
+
+    borderColor.value = bg || "#FFFFFF";
+    hoverBorderColor.value = border || "#F0F0FB";
+  }
+}
+
 const stableChartState = computed(() => {
   const labels: string[] = [];
   const data: number[] = [];
@@ -59,17 +70,10 @@ const stableChartState = computed(() => {
   const sourceLabels = props.labels || [];
   const sourceDataset = props.datasets?.[0];
 
-  const borderColor = getComputedStyle(document.body)
-    .getPropertyValue("--body-bg")
-    .trim();
-  const hoverBorderColor = getComputedStyle(document.body)
-    .getPropertyValue("--border")
-    .trim();
-
   if (sourceDataset) {
     sourceDataset.data.forEach((value, originalIndex) => {
       const numeric = typeof value === "string" ? parseFloat(value) : value;
-      if (numeric > 0) {
+      if (!isNaN(numeric) && numeric > 0) {
         labels.push(sourceLabels[originalIndex]);
         data.push(numeric);
         backgroundColor.push(sourceDataset.backgroundColor[originalIndex]);
@@ -81,14 +85,7 @@ const stableChartState = computed(() => {
   return {
     chartData: {
       labels,
-      datasets: [
-        {
-          data,
-          backgroundColor,
-          borderColor,
-          hoverBorderColor,
-        },
-      ],
+      datasets: [{ data, backgroundColor }],
     },
     indexMap,
     total: data.reduce((a, b) => a + b, 0),
@@ -112,29 +109,24 @@ const activeSlice = computed(() => {
 
 const displayNumber = computed(() => {
   const value = activeSlice.value?.value ?? stableChartState.value.total ?? 0;
-  const rounded = Math.round(value * 100) / 100;
-
-  return `${rounded} ${props.suffix || ""}`;
+  return `${round(value)} ${props.suffix || ""}`;
 });
 const displayLabel = computed(() => activeSlice.value?.label ?? "In Total");
 
-// --- Event Handlers ---
 function handleMouseEnter() {
   isMouseOutside.value = false;
 }
 function handleMouseLeave() {
   isMouseOutside.value = true;
   if (props.activeIndex != null) emit("update:activeIndex", null);
-  hideTooltip(); // Also hide the tooltip on leave
+  hideTooltip();
 }
 
-// --- Plugins & Chart Options ---
 const fixCenterPlugin: Plugin<"doughnut"> = {
   id: "fixCenter",
   beforeDraw(chart) {
     const meta = chart.getDatasetMeta(0);
     if (!meta?.data?.length) return;
-
     const { width, height } = chart;
     const outerRadius = Math.min(width, height) / 2;
     const cutoutRatio = parseFloat(chart.options.cutout as string) / 100 || 0.8;
@@ -143,10 +135,11 @@ const fixCenterPlugin: Plugin<"doughnut"> = {
     const cy = height / 2;
 
     meta.data.forEach((seg) => {
+      const arc = seg as ArcElement;
       seg.x = cx;
       seg.y = cy;
-      seg.outerRadius = outerRadius - 2;
-      seg.innerRadius = innerRadius - 2;
+      arc.outerRadius = outerRadius - 2;
+      arc.innerRadius = innerRadius - 2;
     });
   },
 };
@@ -157,7 +150,16 @@ const chartOptions: ChartOptions<"doughnut"> = {
   cutout: "80%",
   responsive: true,
   maintainAspectRatio: true,
-  elements: { arc: { borderRadius: 3, hoverOffset } },
+  elements: {
+    arc: {
+      borderRadius: 3,
+      hoverOffset: 2,
+      borderWidth: 2,
+      borderColor: (context) => {
+        return context.active ? hoverBorderColor.value : borderColor.value;
+      },
+    },
+  },
   onHover: (event, elements) => {
     if (isMouseOutside.value) return;
 
@@ -167,7 +169,7 @@ const chartOptions: ChartOptions<"doughnut"> = {
       return;
     }
 
-    const filteredIdx = elements[0]?.index ?? null;
+    const filteredIdx = elements.length ? elements[0].index : null;
     const originalIdx =
       filteredIdx != null ? stableChartState.value.indexMap[filteredIdx] : null;
 
@@ -175,7 +177,6 @@ const chartOptions: ChartOptions<"doughnut"> = {
       emit("update:activeIndex", originalIdx);
     }
 
-    // 3. Use the composable functions to control the tooltip
     if (filteredIdx !== null && originalIdx !== null) {
       const content = formatTooltipContent({
         label: props.labels?.[originalIdx] ?? "",
@@ -193,13 +194,12 @@ const chartOptions: ChartOptions<"doughnut"> = {
   plugins: {
     legend: { display: false },
     tooltip: {
-      enabled: false, // Keep native tooltip disabled
+      enabled: false,
     },
   },
   interaction: { mode: "nearest", intersect: false },
 };
 
-// --- Lifecycle & Watchers ---
 function attachListeners(canvas: HTMLCanvasElement) {
   canvas.addEventListener("mouseenter", handleMouseEnter);
   canvas.addEventListener("mouseleave", handleMouseLeave);
@@ -209,11 +209,17 @@ function detachListeners(canvas: HTMLCanvasElement) {
   canvas.removeEventListener("mouseleave", handleMouseLeave);
 }
 
+function cleanup() {
+  if (chartInstance?.canvas) {
+    detachListeners(chartInstance.canvas);
+  }
+  chartInstance?.destroy();
+}
+
 function renderChart() {
   if (!canvasRef.value) return;
 
-  if (chartInstance?.canvas) detachListeners(chartInstance.canvas);
-  chartInstance?.destroy();
+  cleanup();
 
   chartInstance = new Chart(canvasRef.value, {
     type: "doughnut",
@@ -225,13 +231,28 @@ function renderChart() {
   attachListeners(chartInstance.canvas);
 }
 
-onMounted(renderChart);
-onBeforeUnmount(() => {
-  if (chartInstance?.canvas) detachListeners(chartInstance.canvas);
-  chartInstance?.destroy();
+onMounted(() => {
+  updateColorsFromTheme();
+  renderChart();
 });
 
-watch(stableChartState, renderChart, { deep: true });
+onBeforeUnmount(cleanup);
+
+watch(
+  () => store.getters["prefs/theme"],
+  () => {
+    updateColorsFromTheme();
+    chartInstance?.update();
+  }
+);
+
+watch(
+  () => stableChartState.value.chartData,
+  () => {
+    renderChart();
+  },
+  { deep: true }
+);
 
 watch(
   activeFilteredIndex,
@@ -247,7 +268,7 @@ watch(
 </script>
 
 <template>
-  <div class="chart-container" :style="`--hover-offset: ${hoverOffset}px`">
+  <div class="chart-container">
     <canvas ref="canvasRef" />
     <div class="center-text">
       <div class="number">{{ displayNumber }}</div>

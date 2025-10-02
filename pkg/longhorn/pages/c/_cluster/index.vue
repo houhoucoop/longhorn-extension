@@ -1,10 +1,11 @@
 <script>
 import TabTitle from "@shell/components/TabTitle";
 import ResourceChart from "@longhorn/components/Dashboard/ResourceChart.vue";
+import AppTooltip from "@longhorn/components/Dashboard/Tooltip.vue";
 
 export default {
   name: "LonghornDashboard",
-  components: { TabTitle, ResourceChart },
+  components: { TabTitle, ResourceChart, AppTooltip },
 
   data() {
     return {
@@ -146,6 +147,7 @@ export default {
         :horizontal="chartsGroup2.length < 4"
       />
     </div>
+    <AppTooltip />
   </div>
 </template>
 
@@ -160,7 +162,6 @@ export default {
   display: grid;
   gap: 24px;
   grid-template-columns: 1fr;
-  min-width: 350px;
 
   @media only screen and (min-width: map-get($breakpoints, "--viewport-9")) {
     &.grid-3 {
