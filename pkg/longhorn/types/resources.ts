@@ -7,4 +7,5 @@ export const LONGHORN_RESOURCES = {
 
 export const LONGHORN_RESOURCE_IDS = {
   DEFAULT_ENGINE_IMAGE: "longhorn-system/default-engine-image",
+  CURRENT_LONGHORN_VERSION: "longhorn-system/current-longhorn-version"
 };

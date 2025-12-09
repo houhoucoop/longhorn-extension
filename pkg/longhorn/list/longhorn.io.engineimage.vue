@@ -25,24 +25,21 @@ export default {
 
   async fetch() {
     const inStore = this.$store.getters["currentProduct"].inStore;
-    const hash = {
-      engineImages: this.$store.dispatch(`${inStore}/findAll`, {
-        type: this.resource,
-      }),
+
+    await allHash({
+      engineImages: this.$store.dispatch(`${inStore}/findAll`, { type: this.resource }),
       defaultEngineImage: this.$store.dispatch(`${inStore}/find`, {
         type: LONGHORN_RESOURCES.SETTINGS,
         id: LONGHORN_RESOURCE_IDS.DEFAULT_ENGINE_IMAGE,
       }),
-    };
-    const res = await allHash(hash);
-
-    this.rows = res.engineImages;
+    });
   },
 
-  data() {
-    return {
-      rows: [],
-    };
+  computed: {
+    rows() {
+      const inStore = this.$store.getters["currentProduct"].inStore;
+      return this.$store.getters[`${inStore}/all`](this.resource) || [];
+    },
   },
 };
 </script>

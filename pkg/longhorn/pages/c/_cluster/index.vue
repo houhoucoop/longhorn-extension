@@ -2,10 +2,32 @@
 import TabTitle from "@shell/components/TabTitle";
 import ResourceChart from "@longhorn/components/Dashboard/ResourceChart.vue";
 import AppTooltip from "@longhorn/components/Dashboard/Tooltip.vue";
+import Events from "@longhorn/components/Dashboard/Events.vue";
+import { allHash } from "@shell/utils/promise";
+import {
+  LONGHORN_RESOURCES,
+  LONGHORN_RESOURCE_IDS,
+} from "../../../types/resources";
 
 export default {
   name: "LonghornDashboard",
-  components: { TabTitle, ResourceChart, AppTooltip },
+  components: { TabTitle, ResourceChart, AppTooltip, Events },
+
+   async fetch() {
+    const inStore = this.$store.getters["currentProduct"].inStore;
+
+    const hash = {
+      nodes: this.$store.dispatch(`${inStore}/findAll`, {
+        type: LONGHORN_RESOURCES.NODES,
+      }),
+      serverVersion: this.$store.dispatch(`${inStore}/find`, {
+        type: LONGHORN_RESOURCES.SETTINGS,
+        id: LONGHORN_RESOURCE_IDS.CURRENT_LONGHORN_VERSION,
+      }),
+    };
+
+    await allHash(hash);
+  },
 
   data() {
     return {
@@ -47,7 +69,6 @@ export default {
           },
         ],
       },
-
       volumeChart2: {
         title: "Volume",
         labels: ["Healthy", "Degraded", "In Progress", "Faulty", "Detached"],
@@ -97,6 +118,7 @@ export default {
           },
         ],
       },
+      currentVersion: "",
     };
   },
 
@@ -112,6 +134,30 @@ export default {
         this.nodesChart2,
       ];
     },
+
+    nodeCreatedAt() {
+      const inStore = this.$store.getters["currentProduct"].inStore;
+      const nodes = this.$store.getters[`${inStore}/all`](LONGHORN_RESOURCES.NODES);
+
+      if (!nodes.length) {
+        return new Date().toISOString();
+      }
+
+      const timestamps = nodes.map((n) => new Date(n.metadata.creationTimestamp));
+      const earliest = new Date(Math.min(...timestamps.map((d) => d.getTime())));
+
+      return earliest.toISOString();
+    },
+
+    currentVersion() {
+      const inStore = this.$store.getters["currentProduct"].inStore;
+      const versionObj = this.$store.getters[`${inStore}/byId`](
+        LONGHORN_RESOURCES.SETTINGS,
+        LONGHORN_RESOURCE_IDS.CURRENT_LONGHORN_VERSION
+      );
+
+      return versionObj?.value || "";
+    },
   },
 };
 </script>
@@ -125,7 +171,24 @@ export default {
     </header>
 
     <div class="glance-container">
-      <div :style="{ flex: 1 }" />
+      <div>
+        <label> {{ t("longhorn.dashboard.version") }}: </label>
+        <span>
+          <span v-clean-tooltip="{ content: currentVersion }">
+            {{ currentVersion }}
+          </span>
+        </span>
+      </div>
+      <div>
+        <label> {{ t("longhorn.dashboard.created") }}: </label>
+        <span>
+          <LiveDate
+            :value="nodeCreatedAt"
+            :add-suffix="true"
+            :show-tooltip="true"
+          />
+        </span>
+      </div>
     </div>
 
     <div class="resource-gauges grid-3">
@@ -148,6 +211,7 @@ export default {
       />
     </div>
     <AppTooltip />
+    <Events />
   </div>
 </template>
 
@@ -156,6 +220,15 @@ export default {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   padding: 10px 0;
+  display: flex;
+
+  & > * {
+    margin-right: 40px;
+
+    & SPAN {
+      font-weight: bold;
+    }
+  }
 }
 
 .resource-gauges {

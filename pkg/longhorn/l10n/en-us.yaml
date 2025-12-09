@@ -1,6 +1,9 @@
 longhorn:
   dashboard:
     title: Dashboard
+    version: Version
+    created: Created
+    events: Events
   node:
     title: Nodes (Custom page)
   engineImage:

@@ -21,7 +21,6 @@ export function init($plugin: any, store: any) {
 
   virtualType({
     name: LONGHORN_PAGES.DASHBOARD,
-    group: "Root",
     route: {
       name: `c-cluster-${PRODUCT_NAME}`,
       params: { product: PRODUCT_NAME },
