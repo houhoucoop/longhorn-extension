@@ -3,20 +3,26 @@ import TabTitle from "@shell/components/TabTitle";
 import ResourceChart from "@longhorn/components/Dashboard/ResourceChart.vue";
 import AppTooltip from "@longhorn/components/Dashboard/Tooltip.vue";
 import Events from "@longhorn/components/Dashboard/Events.vue";
+import LiveDate from "@shell/components/formatter/LiveDate.vue";
 import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
   LONGHORN_RESOURCE_IDS,
 } from "../../../types/resources";
+import { NODE_STATUS } from "../../../types/nodes";
+import { formatGiB } from '../../../utils/formatter'
 
 export default {
   name: "LonghornDashboard",
-  components: { TabTitle, ResourceChart, AppTooltip, Events },
+  components: { TabTitle, ResourceChart, AppTooltip, Events, LiveDate },
 
-   async fetch() {
+  async fetch() {
     const inStore = this.$store.getters["currentProduct"].inStore;
 
     const hash = {
+      volumes: this.$store.dispatch(`${inStore}/findAll`, {
+        type: LONGHORN_RESOURCES.VOLUMES,
+      }),
       nodes: this.$store.dispatch(`${inStore}/findAll`, {
         type: LONGHORN_RESOURCES.NODES,
       }),
@@ -30,13 +36,116 @@ export default {
   },
 
   data() {
-    return {
-      volumeChart1: {
+    return {};
+  },
+
+  methods: {
+    getNodeStatus(nodeData) {
+      if (!nodeData || !nodeData.status || !nodeData.spec) {
+        return NODE_STATUS.DOWN;
+      }
+
+      const findConditionStatus = (type) => {
+        const condition = nodeData.status.conditions.find(
+          (c) => c.type === type
+        );
+        return condition ? condition.status : null;
+      };
+
+      const readyStatus = findConditionStatus("Ready");
+      if (readyStatus === "False") {
+        return NODE_STATUS.DOWN;
+      }
+
+      if (nodeData.spec.allowScheduling === false) {
+        return NODE_STATUS.DISABLED;
+      }
+
+      const schedulableStatus = findConditionStatus("Schedulable");
+      if (schedulableStatus === "False") {
+        return NODE_STATUS.UNSCHEDULABLE;
+      }
+
+      if (readyStatus === "True" && schedulableStatus === "True") {
+        return NODE_STATUS.SCHEDULABLE;
+      }
+
+      return NODE_STATUS.DOWN;
+    },
+
+    hasData(chart) {
+        if (!chart || !chart.datasets || chart.datasets.length === 0) {
+            return false;
+        }
+        const total = chart.datasets[0].data.reduce(
+            (sum, value) => sum + value,
+            0
+        );
+        return total > 0.01;
+    }
+  },
+
+  computed: {
+    volumeChart() {
+      const inStore = this.$store.getters["currentProduct"].inStore;
+      const volumes = this.$store.getters[`${inStore}/all`](
+        LONGHORN_RESOURCES.VOLUMES
+      );
+
+      const counts = {
+        Healthy: 0,
+        Degraded: 0,
+        InProgress: 0,
+        Faulty: 0,
+        Detached: 0,
+      };
+
+      volumes.forEach((volume) => {
+        const robustness = volume.status?.robustness;
+        const state = volume.status?.state;
+
+        if (state === "detached" && robustness === "faulted") {
+          counts.Faulty++;
+          return;
+        }
+        if (state === "attached" && robustness === "degraded") {
+          counts.Degraded++;
+          return;
+        }
+
+        if (
+          (state !== "attached" && state !== "detached") ||
+          (state === "attached" && robustness !== "healthy" && robustness !== "degraded")
+        ) {
+          counts.InProgress++;
+          return;
+        }
+
+        if (state === "detached") {
+          counts.Detached++;
+          return;
+        }
+
+        if (state === "attached" && robustness === "healthy") {
+          counts.Healthy++;
+          return;
+        }
+
+        counts.Detached++;
+      });
+
+      return {
         title: "Volume",
         labels: ["Healthy", "Degraded", "In Progress", "Faulty", "Detached"],
         datasets: [
           {
-            data: [1, 2, 0, 0, 1],
+            data: [
+              counts.Healthy,
+              counts.Degraded,
+              counts.InProgress,
+              counts.Faulty,
+              counts.Detached,
+            ],
             backgroundColor: [
               "#27AE5F",
               "#F1C40F",
@@ -47,104 +156,193 @@ export default {
           },
         ],
         resourceNameKey: "generic.resource",
-      },
-      storageChart1: {
-        title: "Storage",
+      };
+    },
+
+    filesystemStorageChart() {
+      const inStore = this.$store.getters["currentProduct"].inStore;
+      const nodes = this.$store.getters[`${inStore}/all`](
+        LONGHORN_RESOURCES.NODES
+      );
+
+      let totalSchedulable = 0;
+      let totalReserved = 0;
+      let totalUsed = 0;
+      let totalDisabled = 0;
+
+      nodes.forEach((node) => {
+        const diskStatus = node.status?.diskStatus || {};
+        const disksSpec = node.spec?.disks || {};
+
+        Object.entries(diskStatus).forEach(([diskName, status]) => {
+          const spec = disksSpec[diskName] || {};
+
+          if (status.diskType === "filesystem" || spec.diskType === "filesystem") {
+            const storageMaximum = status.storageMaximum || 0;
+            const storageAvailable = status.storageAvailable || 0;
+            const storageReserved = spec.storageReserved || 0;
+
+            const isSchedulable = status.conditions?.find((c) => c.type === "Schedulable")?.status === "True";
+
+            totalUsed += storageMaximum - storageAvailable;
+            totalReserved += storageReserved;
+
+            const netAvailable = storageAvailable - storageReserved;
+            if (isSchedulable && netAvailable > 0) {
+              totalSchedulable += netAvailable;
+            }
+
+            if (!isSchedulable && storageMaximum > 0) {
+              totalDisabled += storageMaximum;
+            }
+          }
+        });
+      });
+
+      return {
+        title: "Filesystem Storage",
         labels: ["Schedulable", "Reserved", "Used", "Disabled"],
         datasets: [
           {
-            data: [8.31, 8.98, 12.6, 0],
-            backgroundColor: ["#27AE5F", "#F1C40F", "#78C8CF", "#D9DDDF"],
-          },
-        ],
-        suffix: "Gi",
-      },
-      nodeChart1: {
-        title: "Node",
-        labels: ["Schedulable", "Unschedulable", "Down", "Disabled"],
-        datasets: [
-          {
-            data: [1, 0, 0, 0],
-            backgroundColor: ["#27AE5F", "#F1C40F", "#EF494A", "#D9DDDF"],
-          },
-        ],
-      },
-      volumeChart2: {
-        title: "Volume",
-        labels: ["Healthy", "Degraded", "In Progress", "Faulty", "Detached"],
-        datasets: [
-          {
-            data: [1, 2, 0, 0, 1],
-            backgroundColor: [
-              "#27AE5F",
-              "#F1C40F",
-              "#78C8CF",
-              "#EF494A",
-              "#D9DDDF",
+            data: [
+              formatGiB(totalSchedulable),
+              formatGiB(totalReserved),
+              formatGiB(totalUsed),
+              formatGiB(totalDisabled),
             ],
-          },
-        ],
-        resourceNameKey: "generic.resource",
-      },
-      storageChart2: {
-        title: "Overall Storage",
-        labels: ["Schedulable", "Reserved", "Used", "Disabled"],
-        datasets: [
-          {
-            data: [8.31, 8.98, 12.6, 0],
             backgroundColor: ["#27AE5F", "#F1C40F", "#78C8CF", "#D9DDDF"],
           },
         ],
         suffix: "Gi",
-      },
-      nodeChart2: {
+      };
+    },
+
+    blockStorageChart() {
+      const inStore = this.$store.getters["currentProduct"].inStore;
+      const nodes = this.$store.getters[`${inStore}/all`](
+        LONGHORN_RESOURCES.NODES
+      );
+
+      let totalSchedulable = 0;
+      let totalReserved = 0;
+      let totalUsed = 0;
+      let totalDisabled = 0;
+
+      nodes.forEach((node) => {
+        if (node.status?.diskStatus) {
+          Object.values(node.status.diskStatus).forEach((diskStatus) => {
+            if (diskStatus.diskType === "block") {
+              const storageMaximum = diskStatus.storageMaximum || 0;
+              const storageAvailable = diskStatus.storageAvailable || 0;
+
+              const storageReserved = node.spec.disks?.[diskStatus.diskName]?.storageReserved || 0;
+
+              const isSchedulable = diskStatus.conditions?.find((c) => c.type === "Schedulable")?.status === "True";
+
+              totalReserved += storageReserved;
+              totalUsed += storageMaximum - storageAvailable;
+
+              const netAvailable = storageAvailable - storageReserved;
+
+              if (isSchedulable && netAvailable > 0) {
+                totalSchedulable += netAvailable;
+              }
+
+              if (!isSchedulable && storageMaximum > 0) {
+                totalDisabled += storageMaximum;
+              }
+            }
+          });
+        }
+      });
+
+      return {
         title: "Block Storage",
         labels: ["Schedulable", "Reserved", "Used", "Disabled"],
         datasets: [
           {
-            data: [2.98, 1, 0, 0],
+            data: [
+              formatGiB(totalSchedulable),
+              formatGiB(totalReserved),
+              formatGiB(totalUsed),
+              formatGiB(totalDisabled),
+            ],
             backgroundColor: ["#27AE5F", "#F1C40F", "#78C8CF", "#D9DDDF"],
           },
         ],
         suffix: "Gi",
-      },
-      nodesChart2: {
+      };
+    },
+
+    nodesChart() {
+      const inStore = this.$store.getters["currentProduct"].inStore;
+      const nodes = this.$store.getters[`${inStore}/all`](
+        LONGHORN_RESOURCES.NODES
+      );
+
+      const counts = {
+        [NODE_STATUS.SCHEDULABLE]: 0,
+        [NODE_STATUS.UNSCHEDULABLE]: 0,
+        [NODE_STATUS.DOWN]: 0,
+        [NODE_STATUS.DISABLED]: 0,
+      };
+
+      nodes.forEach((node) => {
+        const status = this.getNodeStatus(node);
+        if (counts.hasOwnProperty(status)) {
+          counts[status]++;
+        } else {
+          counts[NODE_STATUS.DOWN]++;
+        }
+      });
+
+      return {
         title: "Node",
         labels: ["Schedulable", "Unschedulable", "Down", "Disabled"],
         datasets: [
           {
-            data: [1, 0, 0, 0],
+            data: [
+              counts[NODE_STATUS.SCHEDULABLE],
+              counts[NODE_STATUS.UNSCHEDULABLE],
+              counts[NODE_STATUS.DOWN],
+              counts[NODE_STATUS.DISABLED],
+            ],
             backgroundColor: ["#27AE5F", "#F1C40F", "#EF494A", "#D9DDDF"],
           },
         ],
-      },
-      currentVersion: "",
-    };
-  },
-
-  computed: {
-    chartsGroup1() {
-      return [this.volumeChart1, this.storageChart1, this.nodeChart1];
+      };
     },
-    chartsGroup2() {
-      return [
-        this.volumeChart2,
-        this.storageChart2,
-        this.nodeChart2,
-        this.nodesChart2,
-      ];
+
+    charts() {
+      const charts = [];
+      charts.push(this.volumeChart);
+      charts.push(this.filesystemStorageChart);
+
+      if (this.hasData(this.blockStorageChart)) {
+        charts.push(this.blockStorageChart);
+      }
+
+      charts.push(this.nodesChart);
+
+      return charts;
     },
 
     nodeCreatedAt() {
       const inStore = this.$store.getters["currentProduct"].inStore;
-      const nodes = this.$store.getters[`${inStore}/all`](LONGHORN_RESOURCES.NODES);
+      const nodes = this.$store.getters[`${inStore}/all`](
+        LONGHORN_RESOURCES.NODES
+      );
 
       if (!nodes.length) {
         return new Date().toISOString();
       }
 
-      const timestamps = nodes.map((n) => new Date(n.metadata.creationTimestamp));
-      const earliest = new Date(Math.min(...timestamps.map((d) => d.getTime())));
+      const timestamps = nodes.map(
+        (n) => new Date(n.metadata.creationTimestamp)
+      );
+      const earliest = new Date(
+        Math.min(...timestamps.map((d) => d.getTime()))
+      );
 
       return earliest.toISOString();
     },
@@ -191,23 +389,20 @@ export default {
       </div>
     </div>
 
-    <div class="resource-gauges grid-3">
+    <div
+      class="resource-gauges"
+      :key="charts.length"
+      :class="{
+        'grid-3': charts.length === 3,
+        'grid-4': charts.length >= 4,
+      }"
+    >
       <ResourceChart
-        v-for="(chartData, index) in chartsGroup1"
-        :key="'group1-' + index"
+        v-for="(chartData, index) in charts"
+        :key="'group-' + index"
         :title="chartData.title"
         :chartData="chartData"
-        :horizontal="chartsGroup1.length < 4"
-      />
-    </div>
-
-    <div class="resource-gauges grid-4">
-      <ResourceChart
-        v-for="(chartData, index) in chartsGroup2"
-        :key="'group2-' + index"
-        :title="chartData.title"
-        :chartData="chartData"
-        :horizontal="chartsGroup2.length < 4"
+        :horizontal="charts.length < 4"
       />
     </div>
     <AppTooltip />

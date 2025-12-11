@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from "vue";
 import {
   Chart,
   DoughnutController,
@@ -144,6 +144,50 @@ const fixCenterPlugin: Plugin<"doughnut"> = {
   },
 };
 
+const emptyDoughnutPlugin = {
+  id: 'emptyDoughnut',
+  beforeDraw(chart: { getDatasetMeta?: any; options?: any; ctx?: any; width?: any; height?: any; }) {
+    const meta = chart.getDatasetMeta(0);
+
+    if (!meta?.data?.length) {
+
+      const { ctx, width, height } = chart;
+
+      const cx = width / 2;
+      const cy = height / 2;
+
+      const outerRadius = Math.min(width, height) / 2;
+      const cutoutRatio = parseFloat(chart.options.cutout as string) / 100 || 0.8;
+      const innerRadius = outerRadius * cutoutRatio;
+
+      const adjustedOuterRadius = outerRadius - 2;
+      const adjustedInnerRadius = innerRadius - 2;
+
+      const borderWidth = 2;
+
+      const ringRadius = (adjustedOuterRadius + adjustedInnerRadius) / 2;
+      const totalRingWidth = adjustedOuterRadius - adjustedInnerRadius;
+
+      const startAngleDegreesCorrected = 150;
+      const circumferenceDegrees = 240;
+
+      const startAngle = (startAngleDegreesCorrected * Math.PI) / 180;
+      const endAngle = ((startAngleDegreesCorrected + circumferenceDegrees) * Math.PI) / 180;
+
+      ctx.save();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, ringRadius, startAngle, endAngle);
+
+      ctx.strokeStyle = 'rgba(217, 221, 223, 0.5)';
+      ctx.lineWidth = totalRingWidth - borderWidth;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  }
+};
+
 const chartOptions: ChartOptions<"doughnut"> = {
   rotation: -120,
   circumference: 240,
@@ -225,7 +269,7 @@ function renderChart() {
     type: "doughnut",
     data: stableChartState.value.chartData,
     options: chartOptions,
-    plugins: [fixCenterPlugin],
+    plugins: [fixCenterPlugin, emptyDoughnutPlugin],
   });
 
   attachListeners(chartInstance.canvas);
@@ -233,7 +277,9 @@ function renderChart() {
 
 onMounted(() => {
   updateColorsFromTheme();
-  renderChart();
+  nextTick(() => {
+    renderChart();
+  });
 });
 
 onBeforeUnmount(cleanup);
