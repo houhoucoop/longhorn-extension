@@ -10,16 +10,17 @@ import {
   LONGHORN_RESOURCE_IDS,
 } from "../../../types/resources";
 import { NODE_STATUS } from "../../../types/nodes";
-import { formatGiB } from '../../../utils/formatter'
+import { formatGiB } from "../../../utils/formatter";
+import { LONGHORN_COLORS } from "../../../utils/colors";
 
 export default {
   name: "LonghornDashboard",
   components: { TabTitle, ResourceChart, AppTooltip, Events, LiveDate },
 
   async fetch() {
-    const inStore = this.$store.getters["currentProduct"].inStore;
+    const inStore = this.inStore;
 
-    const hash = {
+    await allHash({
       volumes: this.$store.dispatch(`${inStore}/findAll`, {
         type: LONGHORN_RESOURCES.VOLUMES,
       }),
@@ -30,68 +31,71 @@ export default {
         type: LONGHORN_RESOURCES.SETTINGS,
         id: LONGHORN_RESOURCE_IDS.CURRENT_LONGHORN_VERSION,
       }),
-    };
-
-    await allHash(hash);
-  },
-
-  data() {
-    return {};
+    });
   },
 
   methods: {
-    getNodeStatus(nodeData) {
-      if (!nodeData || !nodeData.status || !nodeData.spec) {
-        return NODE_STATUS.DOWN;
-      }
+    getNodeStatus(node) {
+      if (!node?.status) return NODE_STATUS.DOWN;
 
-      const findConditionStatus = (type) => {
-        const condition = nodeData.status.conditions.find(
-          (c) => c.type === type
-        );
-        return condition ? condition.status : null;
-      };
+      const cond = (t) =>
+        node.status.conditions.find((c) => c.type === t)?.status;
+      const ready = cond("Ready");
+      const sched = cond("Schedulable");
 
-      const readyStatus = findConditionStatus("Ready");
-      if (readyStatus === "False") {
-        return NODE_STATUS.DOWN;
-      }
-
-      if (nodeData.spec.allowScheduling === false) {
-        return NODE_STATUS.DISABLED;
-      }
-
-      const schedulableStatus = findConditionStatus("Schedulable");
-      if (schedulableStatus === "False") {
-        return NODE_STATUS.UNSCHEDULABLE;
-      }
-
-      if (readyStatus === "True" && schedulableStatus === "True") {
-        return NODE_STATUS.SCHEDULABLE;
-      }
+      if (ready === "False") return NODE_STATUS.DOWN;
+      if (node.spec?.allowScheduling === false) return NODE_STATUS.DISABLED;
+      if (sched === "False") return NODE_STATUS.UNSCHEDULABLE;
+      if (ready === "True" && sched === "True") return NODE_STATUS.SCHEDULABLE;
 
       return NODE_STATUS.DOWN;
     },
 
     hasData(chart) {
-        if (!chart || !chart.datasets || chart.datasets.length === 0) {
-            return false;
+      if (!chart?.datasets?.length) return false;
+      const sum = chart.datasets[0].data.reduce((a, b) => a + b, 0);
+      return sum > 0.01;
+    },
+
+    processDisks() {
+      const totals = {
+        fs: { sched: 0, reserved: 0, used: 0, disabled: 0 },
+        block: { sched: 0, reserved: 0, used: 0, disabled: 0 },
+      };
+
+      this.nodes.forEach((node) => {
+        const diskStatus = node.status?.diskStatus || {};
+        const disksSpec = node.spec?.disks || {};
+
+        for (const [diskName, st] of Object.entries(diskStatus)) {
+          const spec = disksSpec[diskName] || {};
+          const type = st.diskType || spec.diskType;
+
+          if (!["filesystem", "block"].includes(type)) continue;
+
+          const max = st.storageMaximum || 0;
+          const avail = st.storageAvailable || 0;
+          const reserved = spec.storageReserved || 0;
+          const schedulable =
+            st.conditions?.find((c) => c.type === "Schedulable")?.status ===
+            "True";
+
+          const group = type === "filesystem" ? totals.fs : totals.block;
+
+          group.used += max - avail;
+          group.reserved += reserved;
+
+          const net = avail - reserved;
+
+          if (schedulable && net > 0) group.sched += net;
+          if (!schedulable && max > 0) group.disabled += max;
         }
-        const total = chart.datasets[0].data.reduce(
-            (sum, value) => sum + value,
-            0
-        );
-        return total > 0.01;
-    }
-  },
+      });
 
-  computed: {
-    volumeChart() {
-      const inStore = this.$store.getters["currentProduct"].inStore;
-      const volumes = this.$store.getters[`${inStore}/all`](
-        LONGHORN_RESOURCES.VOLUMES
-      );
+      return totals;
+    },
 
+    getVolumeChartData() {
       const counts = {
         Healthy: 0,
         Degraded: 0,
@@ -100,186 +104,84 @@ export default {
         Detached: 0,
       };
 
-      volumes.forEach((volume) => {
-        const robustness = volume.status?.robustness;
-        const state = volume.status?.state;
+      this.volumes.forEach((v) => {
+        const s = v.status;
+        const state = s?.state;
+        const robust = s?.robustness;
 
-        if (state === "detached" && robustness === "faulted") {
-          counts.Faulty++;
-          return;
-        }
-        if (state === "attached" && robustness === "degraded") {
+        if (state === "detached" && robust === "faulted") counts.Faulty++;
+        else if (state === "attached" && robust === "degraded")
           counts.Degraded++;
-          return;
-        }
-
-        if (
-          (state !== "attached" && state !== "detached") ||
-          (state === "attached" && robustness !== "healthy" && robustness !== "degraded")
-        ) {
-          counts.InProgress++;
-          return;
-        }
-
-        if (state === "detached") {
-          counts.Detached++;
-          return;
-        }
-
-        if (state === "attached" && robustness === "healthy") {
-          counts.Healthy++;
-          return;
-        }
-
-        counts.Detached++;
+        else if (state === "attached" && robust === "healthy") counts.Healthy++;
+        else if (state === "detached") counts.Detached++;
+        else counts.InProgress++;
       });
 
+      const volumeLabels = [
+        this.t("longhorn.volume.healthy"),
+        this.t("longhorn.volume.degraded"),
+        this.t("longhorn.volume.inProgress"),
+        this.t("longhorn.volume.faulty"),
+        this.t("longhorn.volume.detached"),
+      ];
+
       return {
-        title: "Volume",
-        labels: ["Healthy", "Degraded", "In Progress", "Faulty", "Detached"],
+        title: this.t("longhorn.dashboard.volume.title"),
+        labels: volumeLabels,
+        datasets: [
+          {
+            data: Object.values(counts),
+            backgroundColor: [
+              LONGHORN_COLORS.SUCCESS,
+              LONGHORN_COLORS.WARNING,
+              LONGHORN_COLORS.INFO,
+              LONGHORN_COLORS.DANGER,
+              LONGHORN_COLORS.MUTED,
+            ],
+          },
+        ],
+        resourceNameKey: "longhorn.dashboard.volume.title",
+      };
+    },
+
+    getFilesystemStorageChartData() {
+      const t = this.processDisks().fs;
+
+      const storageLabels = [
+        this.t("longhorn.storage.schedulable"),
+        this.t("longhorn.storage.reserved"),
+        this.t("longhorn.storage.used"),
+        this.t("longhorn.storage.disabled"),
+      ];
+
+      return {
+        title: this.t("longhorn.dashboard.filesystemStorage.title"),
+        labels: storageLabels,
         datasets: [
           {
             data: [
-              counts.Healthy,
-              counts.Degraded,
-              counts.InProgress,
-              counts.Faulty,
-              counts.Detached,
+              formatGiB(t.sched),
+              formatGiB(t.reserved),
+              formatGiB(t.used),
+              formatGiB(t.disabled),
             ],
             backgroundColor: [
-              "#27AE5F",
-              "#F1C40F",
-              "#78C8CF",
-              "#EF494A",
-              "#D9DDDF",
+              LONGHORN_COLORS.SUCCESS,
+              LONGHORN_COLORS.WARNING,
+              LONGHORN_COLORS.INFO,
+              LONGHORN_COLORS.MUTED,
             ],
-          },
-        ],
-        resourceNameKey: "generic.resource",
-      };
-    },
-
-    filesystemStorageChart() {
-      const inStore = this.$store.getters["currentProduct"].inStore;
-      const nodes = this.$store.getters[`${inStore}/all`](
-        LONGHORN_RESOURCES.NODES
-      );
-
-      let totalSchedulable = 0;
-      let totalReserved = 0;
-      let totalUsed = 0;
-      let totalDisabled = 0;
-
-      nodes.forEach((node) => {
-        const diskStatus = node.status?.diskStatus || {};
-        const disksSpec = node.spec?.disks || {};
-
-        Object.entries(diskStatus).forEach(([diskName, status]) => {
-          const spec = disksSpec[diskName] || {};
-
-          if (status.diskType === "filesystem" || spec.diskType === "filesystem") {
-            const storageMaximum = status.storageMaximum || 0;
-            const storageAvailable = status.storageAvailable || 0;
-            const storageReserved = spec.storageReserved || 0;
-
-            const isSchedulable = status.conditions?.find((c) => c.type === "Schedulable")?.status === "True";
-
-            totalUsed += storageMaximum - storageAvailable;
-            totalReserved += storageReserved;
-
-            const netAvailable = storageAvailable - storageReserved;
-            if (isSchedulable && netAvailable > 0) {
-              totalSchedulable += netAvailable;
-            }
-
-            if (!isSchedulable && storageMaximum > 0) {
-              totalDisabled += storageMaximum;
-            }
-          }
-        });
-      });
-
-      return {
-        title: "Filesystem Storage",
-        labels: ["Schedulable", "Reserved", "Used", "Disabled"],
-        datasets: [
-          {
-            data: [
-              formatGiB(totalSchedulable),
-              formatGiB(totalReserved),
-              formatGiB(totalUsed),
-              formatGiB(totalDisabled),
-            ],
-            backgroundColor: ["#27AE5F", "#F1C40F", "#78C8CF", "#D9DDDF"],
           },
         ],
         suffix: "Gi",
+        resourceNameKey: "longhorn.storage.title",
       };
     },
 
-    blockStorageChart() {
-      const inStore = this.$store.getters["currentProduct"].inStore;
-      const nodes = this.$store.getters[`${inStore}/all`](
-        LONGHORN_RESOURCES.NODES
-      );
-
-      let totalSchedulable = 0;
-      let totalReserved = 0;
-      let totalUsed = 0;
-      let totalDisabled = 0;
-
-      nodes.forEach((node) => {
-        if (node.status?.diskStatus) {
-          Object.values(node.status.diskStatus).forEach((diskStatus) => {
-            if (diskStatus.diskType === "block") {
-              const storageMaximum = diskStatus.storageMaximum || 0;
-              const storageAvailable = diskStatus.storageAvailable || 0;
-
-              const storageReserved = node.spec.disks?.[diskStatus.diskName]?.storageReserved || 0;
-
-              const isSchedulable = diskStatus.conditions?.find((c) => c.type === "Schedulable")?.status === "True";
-
-              totalReserved += storageReserved;
-              totalUsed += storageMaximum - storageAvailable;
-
-              const netAvailable = storageAvailable - storageReserved;
-
-              if (isSchedulable && netAvailable > 0) {
-                totalSchedulable += netAvailable;
-              }
-
-              if (!isSchedulable && storageMaximum > 0) {
-                totalDisabled += storageMaximum;
-              }
-            }
-          });
-        }
-      });
-
-      return {
-        title: "Block Storage",
-        labels: ["Schedulable", "Reserved", "Used", "Disabled"],
-        datasets: [
-          {
-            data: [
-              formatGiB(totalSchedulable),
-              formatGiB(totalReserved),
-              formatGiB(totalUsed),
-              formatGiB(totalDisabled),
-            ],
-            backgroundColor: ["#27AE5F", "#F1C40F", "#78C8CF", "#D9DDDF"],
-          },
-        ],
-        suffix: "Gi",
-      };
-    },
-
-    nodesChart() {
-      const inStore = this.$store.getters["currentProduct"].inStore;
-      const nodes = this.$store.getters[`${inStore}/all`](
-        LONGHORN_RESOURCES.NODES
-      );
-
+    // ----------------------------------------------------
+    // 關鍵修正 3/3: Nodes Chart 計算移入方法
+    // ----------------------------------------------------
+    getNodesChartData() {
       const counts = {
         [NODE_STATUS.SCHEDULABLE]: 0,
         [NODE_STATUS.UNSCHEDULABLE]: 0,
@@ -287,18 +189,19 @@ export default {
         [NODE_STATUS.DISABLED]: 0,
       };
 
-      nodes.forEach((node) => {
-        const status = this.getNodeStatus(node);
-        if (counts.hasOwnProperty(status)) {
-          counts[status]++;
-        } else {
-          counts[NODE_STATUS.DOWN]++;
-        }
-      });
+      this.nodes.forEach((n) => counts[this.getNodeStatus(n)]++);
+
+      // 在方法內部安全地計算 Labels
+      const nodeLabels = [
+        this.t("longhorn.node.schedulable"),
+        this.t("longhorn.node.unschedulable"),
+        this.t("longhorn.node.down"),
+        this.t("longhorn.node.disabled"),
+      ];
 
       return {
-        title: "Node",
-        labels: ["Schedulable", "Unschedulable", "Down", "Disabled"],
+        title: this.t("longhorn.dashboard.node.title"),
+        labels: nodeLabels,
         datasets: [
           {
             data: [
@@ -307,54 +210,128 @@ export default {
               counts[NODE_STATUS.DOWN],
               counts[NODE_STATUS.DISABLED],
             ],
-            backgroundColor: ["#27AE5F", "#F1C40F", "#EF494A", "#D9DDDF"],
+            backgroundColor: [
+              LONGHORN_COLORS.SUCCESS,
+              LONGHORN_COLORS.WARNING,
+              LONGHORN_COLORS.DANGER,
+              LONGHORN_COLORS.MUTED,
+            ],
           },
         ],
+        resourceNameKey: "longhorn.dashboard.node.title",
       };
     },
 
+    // ----------------------------------------------------
+    // 處理 Block Storage Chart (使用您的原邏輯)
+    // ----------------------------------------------------
+    getBlockStorageChartData() {
+      const blocks = this.processDisks().block;
+
+      const blockLabels = [
+        this.t("longhorn.storage.schedulable"),
+        this.t("longhorn.storage.reserved"),
+        this.t("longhorn.storage.used"),
+        this.t("longhorn.storage.disabled"),
+      ];
+
+      return {
+        title: this.t("longhorn.dashboard.blockStorage.title"),
+        labels: blockLabels,
+        datasets: [
+          {
+            data: [
+              formatGiB(blocks.sched),
+              formatGiB(blocks.reserved),
+              formatGiB(blocks.used),
+              formatGiB(blocks.disabled),
+            ],
+            backgroundColor: [
+              LONGHORN_COLORS.SUCCESS,
+              LONGHORN_COLORS.WARNING,
+              LONGHORN_COLORS.INFO,
+              LONGHORN_COLORS.MUTED,
+            ],
+          },
+        ],
+        suffix: "Gi",
+        resourceNameKey: "longhorn.storage.title",
+      };
+    },
+  },
+
+  computed: {
+    inStore() {
+      return this.$store.getters["currentProduct"].inStore;
+    },
+
+    volumes() {
+      return this.$store.getters[`${this.inStore}/all`](
+        LONGHORN_RESOURCES.VOLUMES
+      );
+    },
+
+    nodes() {
+      return this.$store.getters[`${this.inStore}/all`](
+        LONGHORN_RESOURCES.NODES
+      );
+    },
+
+    volumeChart() {
+      return this.getVolumeChartData();
+    },
+
+    filesystemStorageChart() {
+      return this.getFilesystemStorageChartData();
+    },
+
+    blockStorageChart() {
+      return this.getBlockStorageChartData();
+    },
+
+    nodesChart() {
+      return this.getNodesChartData();
+    },
+
     charts() {
-      const charts = [];
-      charts.push(this.volumeChart);
-      charts.push(this.filesystemStorageChart);
+      const result = [this.volumeChart, this.filesystemStorageChart];
 
       if (this.hasData(this.blockStorageChart)) {
-        charts.push(this.blockStorageChart);
+        result.push(this.blockStorageChart);
       }
 
-      charts.push(this.nodesChart);
-
-      return charts;
+      result.push(this.nodesChart);
+      return result;
     },
 
     nodeCreatedAt() {
-      const inStore = this.$store.getters["currentProduct"].inStore;
-      const nodes = this.$store.getters[`${inStore}/all`](
-        LONGHORN_RESOURCES.NODES
-      );
-
-      if (!nodes.length) {
+      if (!this.nodes.length) {
         return new Date().toISOString();
       }
 
-      const timestamps = nodes.map(
-        (n) => new Date(n.metadata.creationTimestamp)
-      );
+      const timestamps = this.nodes
+        .map((n) => n?.metadata?.creationTimestamp)
+        .filter((ts) => !!ts)
+        .map((ts) => new Date(ts))
+        .filter((d) => !isNaN(d.getTime()));
+
+      if (!timestamps.length) {
+        return new Date().toISOString();
+      }
+
       const earliest = new Date(
         Math.min(...timestamps.map((d) => d.getTime()))
       );
-
       return earliest.toISOString();
     },
 
     currentVersion() {
-      const inStore = this.$store.getters["currentProduct"].inStore;
-      const versionObj = this.$store.getters[`${inStore}/byId`](
-        LONGHORN_RESOURCES.SETTINGS,
-        LONGHORN_RESOURCE_IDS.CURRENT_LONGHORN_VERSION
+      return (
+        this.$store.getters[`${this.inStore}/byId`](
+          LONGHORN_RESOURCES.SETTINGS,
+          LONGHORN_RESOURCE_IDS.CURRENT_LONGHORN_VERSION
+        )?.value || ""
       );
-
-      return versionObj?.value || "";
     },
   },
 };

@@ -4,8 +4,31 @@ longhorn:
     version: Version
     created: Created
     events: Events
+    volume:
+      title: Volumes
+    filesystemStorage:
+      title: Filesystem Storage
+    blockStorage:
+      title: Block Storage
+    node:
+      title: Nodes
+  volume:
+    healthy: Healthy
+    degraded: Degraded
+    inProgress: In Progress
+    faulty: Faulty
+    detached: Detached
+  storage:
+    title: storage
+    schedulable: Schedulable
+    reserved: Reserved
+    used: Used
+    disabled: Disabled
   node:
-    title: Nodes (Custom page)
+    schedulable: Schedulable
+    unschedulable: Unschedulable
+    down: Down
+    disabled: Disabled
   engineImage:
     title: Engine Image
     fields:
