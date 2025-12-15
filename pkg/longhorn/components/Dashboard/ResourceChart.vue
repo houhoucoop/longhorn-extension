@@ -2,11 +2,13 @@
 import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "@shell/composables/useI18n";
-import SemiDoughnut from "@longhorn/components/Charts/SemiDoughnut.vue";
+// @ts-ignore
+import SemiDoughnut from "@longhorn/components/Charts/SemiDoughnut";
 import {
   useTooltip,
   formatTooltipContent,
 } from "@longhorn/components/Charts/composable";
+// @ts-ignore
 import Link from '@shell/components/formatter/Link';
 
 interface ChartDataset {

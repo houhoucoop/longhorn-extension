@@ -1,11 +1,18 @@
 <script lang="ts">
+  // @ts-ignore
 import Loading from "@shell/components/Loading";
+// @ts-ignore
 import CruResource from "@shell/components/CruResource";
+// @ts-ignore
 import NameNsDescription from "@shell/components/form/NameNsDescription";
+// @ts-ignore
 import { LabeledInput } from "@components/Form/LabeledInput";
+// @ts-ignore
 import Tabbed from "@shell/components/Tabbed";
+// @ts-ignore
 import Tab from "@shell/components/Tabbed/Tab";
 import CreateEditView from "@shell/mixins/create-edit-view";
+// @ts-ignore
 import FormValidation from "@shell/mixins/form-validation";
 import { _CREATE, _VIEW } from "@shell/config/query-params";
 import { exceptionToErrorsArray } from "@shell/utils/error";

@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import Loading from "@shell/components/Loading.vue"; // 確保路徑正確
-import ResourceTable from "@shell/components/ResourceTable.vue"; // 確保路徑正確
+// @ts-ignore
+import Loading from "@shell/components/Loading";
+// @ts-ignore
+import ResourceTable from "@shell/components/ResourceTable";
 import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,

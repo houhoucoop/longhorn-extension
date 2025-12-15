@@ -8,11 +8,12 @@ import {
   EVENT_TYPE,
 } from "@shell/config/table-headers";
 import { EVENT } from "@shell/config/types";
+// @ts-ignore
 import PaginatedResourceTable from "@shell/components/PaginatedResourceTable";
-import {
-  STEVE_NAME_COL,
-} from "@shell/config/pagination-table-headers";
+// @ts-ignore
+import { STEVE_NAME_COL } from "@shell/config/pagination-table-headers";
 import { headerFromSchemaColString } from "@shell/store/type-map.utils";
+// @ts-ignore
 import { NAME as EXPLORER } from "@shell/config/product/explorer";
 
 interface PaginationField {
