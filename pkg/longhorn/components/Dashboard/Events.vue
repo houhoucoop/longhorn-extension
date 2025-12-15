@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+import { defineComponent } from "vue";
 import {
   MESSAGE,
   NAME,
@@ -13,6 +14,18 @@ import {
 } from "@shell/config/pagination-table-headers";
 import { headerFromSchemaColString } from "@shell/store/type-map.utils";
 import { NAME as EXPLORER } from "@shell/config/product/explorer";
+
+interface PaginationField {
+  equals?: boolean;
+  exact?: boolean;
+  exists?: boolean;
+  field?: string | undefined;
+  value?: string;
+}
+
+interface Pagination {
+  projectsOrNamespaces?: { fields: PaginationField[] }[];
+}
 
 const reason = {
   ...REASON,
@@ -37,15 +50,18 @@ const eventHeaders = [
   },
 ];
 
-export default {
+export default defineComponent({
+  name: "LonghornEvents",
+
   components: { PaginatedResourceTable },
 
   data() {
     return {
-      schema: null,
-      events: [],
+      schema: null as any,
+      events: [] as any[],
       eventHeaders,
-      paginationHeaders: null,
+      paginationHeaders: null as any,
+      dismissRouteHandler: (() => {}) as () => void,
       allEventsLink: {
         name: "c-cluster-product-resource",
         params: {
@@ -66,7 +82,7 @@ export default {
               "Last Seen",
               schema,
               this.$store.getters,
-              true
+              true,
             ),
             defaultSort: true,
           },
@@ -84,12 +100,7 @@ export default {
           OBJECT,
           EVENT_TYPE,
           reason,
-          headerFromSchemaColString(
-            "Source",
-            schema,
-            this.$store.getters,
-            true
-          ),
+          headerFromSchemaColString("Source", schema, this.$store.getters, true),
           MESSAGE,
         ]
       : [];
@@ -99,23 +110,25 @@ export default {
   },
 
   mounted() {
-    this.dismissRouteHandler = this.$router.beforeEach(this.onRouteChange);
+    this.dismissRouteHandler = this.$router.beforeEach((to, from, next) =>
+      this.onRouteChange(to, from, next)
+    );
+  },
+
+  beforeUnmount() {
+    if (this.dismissRouteHandler) this.dismissRouteHandler();
   },
 
   methods: {
-    async onRouteChange(to, from, next) {
+    async onRouteChange(to: any, from: any, next: any) {
       if (this.$route.name !== to.name) {
         await this.$store.dispatch("cluster/forgetType", EVENT);
       }
-
       next();
     },
 
-    onApiFilter(pagination) {
-      if (
-        !pagination.projectsOrNamespaces ||
-        !pagination.projectsOrNamespaces[0]
-      ) {
+    onApiFilter(pagination: Pagination) {
+      if (!pagination.projectsOrNamespaces || !pagination.projectsOrNamespaces[0]) {
         pagination.projectsOrNamespaces = [{ fields: [] }];
       }
 
@@ -132,15 +145,11 @@ export default {
       return pagination;
     },
   },
-
-  beforeUnmount() {
-    this.dismissRouteHandler();
-  },
-};
+});
 </script>
 
 <template>
-  <h3 class="mt-40 mb-24">
+  <h3 class="title">
     {{ t("longhorn.dashboard.events") }}
   </h3>
   <PaginatedResourceTable
@@ -159,6 +168,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.title {
+  margin: 24px 0;
+}
 .events-link {
   align-self: center;
   padding-right: 20px;

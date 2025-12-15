@@ -1,3 +1,9 @@
+declare module '@shell/components/TabTitle' {
+  import { DefineComponent } from 'vue';
+  const component: DefineComponent<{}, {}, any>;
+  export default component;
+}
+
 declare module "@shell/plugins/i18n" {
   import { Store } from "vuex";
 

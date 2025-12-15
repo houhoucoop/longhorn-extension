@@ -6,12 +6,16 @@ longhorn:
     events: Events
     volume:
       title: Volumes
+      tooltipSuffix: volumes
     filesystemStorage:
       title: Filesystem Storage
+      tooltipSuffix: storage
     blockStorage:
       title: Block Storage
+      tooltipSuffix: storage
     node:
       title: Nodes
+      tooltipSuffix: nodes
   volume:
     healthy: Healthy
     degraded: Degraded

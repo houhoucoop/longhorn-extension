@@ -1,7 +1,0 @@
-export const LONGHORN_COLORS = {
-  SUCCESS: "#27AE5F",
-  WARNING: "#F1C40F",
-  DANGER: "#EF494A",
-  INFO: "#78C8CF",
-  MUTED: "#D9DDDF",
-};

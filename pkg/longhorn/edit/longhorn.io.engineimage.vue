@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import Loading from "@shell/components/Loading";
 import CruResource from "@shell/components/CruResource";
 import NameNsDescription from "@shell/components/form/NameNsDescription";
@@ -9,7 +9,7 @@ import CreateEditView from "@shell/mixins/create-edit-view";
 import FormValidation from "@shell/mixins/form-validation";
 import { _CREATE, _VIEW } from "@shell/config/query-params";
 import { exceptionToErrorsArray } from "@shell/utils/error";
-import { LONGHORN_NAMESPACE } from "../types/longhorn";
+import { LONGHORN_NAMESPACE } from "../constants/longhorn";
 
 export default {
   name: "EditEngineImage",
@@ -60,11 +60,11 @@ export default {
   },
 
   methods: {
-    onError(errors) {
+    onError(errors: any) {
       this.errors = Array.isArray(errors) ? errors : [errors];
     },
 
-    async save(buttonDone) {
+    async save(buttonDone: (arg0: boolean) => void) {
       this.errors = [];
 
       if (!this.value.spec.image) {

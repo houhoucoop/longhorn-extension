@@ -1,4 +1,4 @@
-import { PRODUCT_NAME } from '../types/longhorn'
+import { PRODUCT_NAME } from '../constants/longhorn'
 import Dashboard from '../pages/c/_cluster/index.vue';
 import ListLonghornResource from '../pages/c/_cluster/_resource/index.vue';
 import CreateLonghornResource from '../pages/c/_cluster/_resource/create.vue';

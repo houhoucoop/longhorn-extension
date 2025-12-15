@@ -1,6 +1,6 @@
 import LonghornModel from "./longhorn";
-import { AVAILABLE_ACTIONS } from "../types/longhorn";
-import { LONGHORN_RESOURCES, LONGHORN_RESOURCE_IDS } from "../types/resources";
+import { AVAILABLE_ACTIONS } from "../constants/longhorn";
+import { LONGHORN_RESOURCES, LONGHORN_RESOURCE_IDS } from "../constants/resources";
 
 export default class EngineImageModel extends LonghornModel {
   get availableActions() {

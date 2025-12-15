@@ -99,12 +99,12 @@ onBeforeUnmount(() => {
 .app-tooltip {
   background: var(--tooltip-bg, #333);
   color: var(--tooltip-text, #fff);
-  padding: 6px 10px;
+  padding: 4px 8px;
   border-radius: var(--border-radius, 4px);
   pointer-events: none;
   white-space: nowrap;
   z-index: 1000;
-  font-size: 12px;
+  font-size: 14px;
   position: fixed;
   top: 0;
   left: 0;

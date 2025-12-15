@@ -1,9 +1,8 @@
 import {
   PRODUCT_NAME,
   LONGHORN_PAGES,
-  LONGHORN_DASHBOARD,
-} from "../types/longhorn";
-import { LONGHORN_RESOURCES } from "../types/resources";
+} from "../constants/longhorn";
+import { LONGHORN_RESOURCES } from "../constants/resources";
 import { ENGINE_IMAGES_HEADER } from "./table-headers";
 
 export function init($plugin: any, store: any) {

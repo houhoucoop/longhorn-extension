@@ -7,6 +7,7 @@ import {
   useTooltip,
   formatTooltipContent,
 } from "@longhorn/components/Charts/composable";
+import Link from '@shell/components/formatter/Link';
 
 interface ChartDataset {
   data: number[];
@@ -53,6 +54,13 @@ const formattedValues = computed(() =>
   })
 );
 
+const isLinkableResource = computed(() => {
+  return (
+    props.chartData.resourceNameKey === 'longhorn.dashboard.node.tooltipSuffix' ||
+    props.chartData.resourceNameKey === 'longhorn.dashboard.volume.tooltipSuffix'
+  );
+});
+
 function handleRowEnter(index: number, event: MouseEvent) {
   if (dataset.value.data[index] === 0) {
     return;
@@ -78,7 +86,10 @@ function handleRowLeave() {
 </script>
 
 <template>
-  <div class="box">
+  <div
+    class="box"
+    :class="{ horizontal: props.horizontal }"
+  >
     <h3 class="chart-title">{{ props.title }}</h3>
     <div class="split-container" :class="{ horizontal: props.horizontal }">
       <div class="chart-panel">
@@ -104,12 +115,18 @@ function handleRowLeave() {
             class="metrics-status"
             :style="{ backgroundColor: dataset.backgroundColor[i] }"
           />
-          <div
-            class="metrics-label"
-            :class="{ 'text-secondary': dataset.data[i] === 0 }"
+          <Link
+            v-if="isLinkableResource && dataset.data[i] > 0"
+            class="metrics-label secondary-text-link"
+            :value="label"
+            :options="{ internal: true }"
+          />
+          <span
+            v-else
+            class="metrics-label text-secondary"
           >
             {{ label }}
-          </div>
+          </span>
           <div class="metrics-value">
             {{ formattedValues[i] }}
           </div>
@@ -135,11 +152,13 @@ function handleRowLeave() {
   border: 1px solid var(--simple-box-border);
   padding: 16px;
   border-radius: 6px;
+  min-width: 380px;
 }
 
 .chart-title {
   padding: 0 12px;
   line-height: 1.5;
+  margin-bottom: 12px;
 }
 
 .split-container {
@@ -150,9 +169,9 @@ function handleRowLeave() {
 }
 
 .chart-panel {
-  flex: 0 0 40%;
-  padding: 12px 8px;
-  max-width: 150px;
+  flex: 0 0 130px;
+  width: 130px;
+  margin: 8px 12px;
 }
 
 .metrics-panel {
@@ -184,6 +203,7 @@ function handleRowLeave() {
 .metrics-label {
   flex: 1;
   line-height: 1.5;
+  padding-right: 16px;
 }
 
 .metrics-value {

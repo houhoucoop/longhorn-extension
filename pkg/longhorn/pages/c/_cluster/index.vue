@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import TabTitle from "@shell/components/TabTitle";
 import ResourceChart from "@longhorn/components/Dashboard/ResourceChart.vue";
 import AppTooltip from "@longhorn/components/Dashboard/Tooltip.vue";
@@ -8,10 +8,12 @@ import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
   LONGHORN_RESOURCE_IDS,
-} from "../../../types/resources";
-import { NODE_STATUS } from "../../../types/nodes";
-import { formatGiB } from "../../../utils/formatter";
-import { LONGHORN_COLORS } from "../../../utils/colors";
+} from "@longhorn/constants/resources";
+import { NODE_STATUS, LonghornNode, DiskStatus } from "@longhorn/types/nodes";
+import { ChartData } from "@longhorn/types/dashboard";
+import { Volume } from "@longhorn/types/volumes";
+import { formatGiB } from "@longhorn/utils/formatter";
+import { LONGHORN_COLORS } from "@longhorn/constants/longhorn";
 
 export default {
   name: "LonghornDashboard",
@@ -35,11 +37,14 @@ export default {
   },
 
   methods: {
-    getNodeStatus(node) {
-      if (!node?.status) return NODE_STATUS.DOWN;
+    getNodeStatus(
+      node: LonghornNode
+    ): (typeof NODE_STATUS)[keyof typeof NODE_STATUS] {
+      if (!node.status) return NODE_STATUS.DOWN;
 
-      const cond = (t) =>
-        node.status.conditions.find((c) => c.type === t)?.status;
+      const cond = (t: string) =>
+        node.status?.conditions?.find((c) => c.type === t)?.status;
+
       const ready = cond("Ready");
       const sched = cond("Schedulable");
 
@@ -51,9 +56,9 @@ export default {
       return NODE_STATUS.DOWN;
     },
 
-    hasData(chart) {
+    hasData(chart?: ChartData): boolean {
       if (!chart?.datasets?.length) return false;
-      const sum = chart.datasets[0].data.reduce((a, b) => a + b, 0);
+      const sum = chart.datasets[0].data.reduce((a: any, b: any) => a + b, 0);
       return sum > 0.01;
     },
 
@@ -63,15 +68,17 @@ export default {
         block: { sched: 0, reserved: 0, used: 0, disabled: 0 },
       };
 
-      this.nodes.forEach((node) => {
-        const diskStatus = node.status?.diskStatus || {};
+      this.nodes.forEach((node: LonghornNode) => {
+        const diskStatus: { [key: string]: DiskStatus } =
+          node.status?.diskStatus || {};
+
         const disksSpec = node.spec?.disks || {};
 
         for (const [diskName, st] of Object.entries(diskStatus)) {
           const spec = disksSpec[diskName] || {};
           const type = st.diskType || spec.diskType;
 
-          if (!["filesystem", "block"].includes(type)) continue;
+          if (!type || !["filesystem", "block"].includes(type)) continue;
 
           const max = st.storageMaximum || 0;
           const avail = st.storageAvailable || 0;
@@ -104,7 +111,7 @@ export default {
         Detached: 0,
       };
 
-      this.volumes.forEach((v) => {
+      this.volumes.forEach((v: Volume) => {
         const s = v.status;
         const state = s?.state;
         const robust = s?.robustness;
@@ -178,9 +185,6 @@ export default {
       };
     },
 
-    // ----------------------------------------------------
-    // 關鍵修正 3/3: Nodes Chart 計算移入方法
-    // ----------------------------------------------------
     getNodesChartData() {
       const counts = {
         [NODE_STATUS.SCHEDULABLE]: 0,
@@ -189,9 +193,8 @@ export default {
         [NODE_STATUS.DISABLED]: 0,
       };
 
-      this.nodes.forEach((n) => counts[this.getNodeStatus(n)]++);
+      this.nodes.forEach((n: LonghornNode) => counts[this.getNodeStatus(n)]++);
 
-      // 在方法內部安全地計算 Labels
       const nodeLabels = [
         this.t("longhorn.node.schedulable"),
         this.t("longhorn.node.unschedulable"),
@@ -222,9 +225,6 @@ export default {
       };
     },
 
-    // ----------------------------------------------------
-    // 處理 Block Storage Chart (使用您的原邏輯)
-    // ----------------------------------------------------
     getBlockStorageChartData() {
       const blocks = this.processDisks().block;
 
@@ -310,10 +310,10 @@ export default {
       }
 
       const timestamps = this.nodes
-        .map((n) => n?.metadata?.creationTimestamp)
-        .filter((ts) => !!ts)
-        .map((ts) => new Date(ts))
-        .filter((d) => !isNaN(d.getTime()));
+        .map((n: { metadata: { creationTimestamp: any; }; }) => n?.metadata?.creationTimestamp)
+        .filter((ts: any) => !!ts)
+        .map((ts: string | number | Date) => new Date(ts))
+        .filter((d: { getTime: () => number; }) => !isNaN(d.getTime()));
 
       if (!timestamps.length) {
         return new Date().toISOString();
@@ -407,18 +407,21 @@ export default {
   display: grid;
   gap: 24px;
   grid-template-columns: 1fr;
+  padding-bottom: 24px;
 
-  @media only screen and (min-width: map-get($breakpoints, "--viewport-9")) {
+  @media (min-width: map-get($breakpoints, "--viewport-9")) {
     &.grid-3 {
       grid-template-columns: repeat(3, 1fr);
+      overflow: auto;
     }
 
     &.grid-4 {
       grid-template-columns: repeat(2, 1fr);
+      overflow: auto;
     }
   }
 
-  @media only screen and (min-width: map-get($breakpoints, "--viewport-12")) {
+  @media (min-width: map-get($breakpoints, "--viewport-12")) {
     &.grid-4 {
       grid-template-columns: repeat(4, 1fr);
     }
