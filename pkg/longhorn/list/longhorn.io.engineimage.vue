@@ -1,9 +1,7 @@
-<script lang="ts" setup>
+<script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-// @ts-ignore
 import Loading from "@shell/components/Loading";
-// @ts-ignore
 import ResourceTable from "@shell/components/ResourceTable";
 import { allHash } from "@shell/utils/promise";
 import {
@@ -25,7 +23,7 @@ const props = defineProps({
 const store = useStore();
 
 const isLoading = ref(true);
-const loadError = ref<Error | null>(null);
+const loadError = ref(null);
 
 const inStore = computed(() => store.getters["currentProduct"].inStore);
 
@@ -48,7 +46,10 @@ async function fetchData() {
 
   try {
     const hash = {
-      engineImages: store.dispatch(`${inStore.value}/findAll`, { type: props.resource }),
+      engineImages: store.dispatch(`${inStore.value}/findAll`, {
+          type: props.resource
+      }),
+
       defaultEngineImage: store.dispatch(`${inStore.value}/find`, {
         type: LONGHORN_RESOURCES.SETTINGS,
         id: LONGHORN_RESOURCE_IDS.DEFAULT_ENGINE_IMAGE,
@@ -57,8 +58,8 @@ async function fetchData() {
 
     await allHash(hash);
 
-  } catch (e: any) {
-    console.error("Failed to fetch EngineImage data:", e);
+  } catch (e) {
+    console.error(`Failed to fetch ${props.resource} data:`, e);
     loadError.value = e;
   } finally {
     isLoading.value = false;
@@ -66,13 +67,13 @@ async function fetchData() {
 }
 
 onMounted(fetchData);
-defineExpose({ loadError });
+defineExpose({ loadError, fetchData })
 </script>
 
 <template>
   <Loading v-if="isLoading" />
   <div v-else-if="loadError">
-    Error loading data: {{ loadError.message }}
+    Error loading data: {{ loadError.message || String(loadError) }}
   </div>
   <div v-else>
     <ResourceTable :rows="rows" :schema="props.schema" />

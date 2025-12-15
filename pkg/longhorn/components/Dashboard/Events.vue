@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 import { defineComponent } from "vue";
 import {
   MESSAGE,
@@ -8,25 +8,10 @@ import {
   EVENT_TYPE,
 } from "@shell/config/table-headers";
 import { EVENT } from "@shell/config/types";
-// @ts-ignore
 import PaginatedResourceTable from "@shell/components/PaginatedResourceTable";
-// @ts-ignore
 import { STEVE_NAME_COL } from "@shell/config/pagination-table-headers";
 import { headerFromSchemaColString } from "@shell/store/type-map.utils";
-// @ts-ignore
 import { NAME as EXPLORER } from "@shell/config/product/explorer";
-
-interface PaginationField {
-  equals?: boolean;
-  exact?: boolean;
-  exists?: boolean;
-  field?: string | undefined;
-  value?: string;
-}
-
-interface Pagination {
-  projectsOrNamespaces?: { fields: PaginationField[] }[];
-}
 
 const reason = {
   ...REASON,
@@ -58,11 +43,11 @@ export default defineComponent({
 
   data() {
     return {
-      schema: null as any,
-      events: [] as any[],
+      schema: null,
+      events: [],
       eventHeaders,
-      paginationHeaders: null as any,
-      dismissRouteHandler: (() => {}) as () => void,
+      paginationHeaders: null,
+      dismissRouteHandler: (() => {}),
       allEventsLink: {
         name: "c-cluster-product-resource",
         params: {
@@ -121,14 +106,14 @@ export default defineComponent({
   },
 
   methods: {
-    async onRouteChange(to: any, from: any, next: any) {
+    async onRouteChange(to, from, next) {
       if (this.$route.name !== to.name) {
         await this.$store.dispatch("cluster/forgetType", EVENT);
       }
       next();
     },
 
-    onApiFilter(pagination: Pagination) {
+    onApiFilter(pagination) {
       if (!pagination.projectsOrNamespaces || !pagination.projectsOrNamespaces[0]) {
         pagination.projectsOrNamespaces = [{ fields: [] }];
       }

@@ -1,39 +1,34 @@
-<script setup lang="ts">
+<script setup>
 import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import { useI18n } from "@shell/composables/useI18n";
-// @ts-ignore
 import SemiDoughnut from "@longhorn/components/Charts/SemiDoughnut";
 import {
   useTooltip,
   formatTooltipContent,
 } from "@longhorn/components/Charts/composable";
-// @ts-ignore
 import Link from '@shell/components/formatter/Link';
 
-interface ChartDataset {
-  data: number[];
-  backgroundColor: string[];
-}
-
-interface ChartData {
-  labels: string[];
-  datasets: ChartDataset[];
-  suffix?: string;
-  resourceNameKey?: string;
-}
-
-const props = defineProps<{
-  title: string;
-  chartData: ChartData;
-  horizontal?: boolean;
-}>();
+const props = defineProps({
+  title: {
+    type: String,
+    required: true,
+  },
+  chartData: {
+    type: Object,
+    required: true,
+  },
+  horizontal: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const { t } = useI18n(useStore());
 
 const { showTooltip, hideTooltip } = useTooltip();
 
-const activeIndex = ref<number | null>(null);
+const activeIndex = ref(null);
 
 const dataset = computed(() => props.chartData.datasets[0]);
 
@@ -58,12 +53,12 @@ const formattedValues = computed(() =>
 
 const isLinkableResource = computed(() => {
   return (
-    props.chartData.resourceNameKey === 'longhorn.dashboard.node.tooltipSuffix' ||
-    props.chartData.resourceNameKey === 'longhorn.dashboard.volume.tooltipSuffix'
+    props.chartData.resourceNameKey === 'longhorn.dashboard.node.title' ||
+    props.chartData.resourceNameKey === 'longhorn.dashboard.volume.title'
   );
 });
 
-function handleRowEnter(index: number, event: MouseEvent) {
+function handleRowEnter(index, event) {
   if (dataset.value.data[index] === 0) {
     return;
   }
@@ -78,7 +73,7 @@ function handleRowEnter(index: number, event: MouseEvent) {
     resourceNameKey: props.chartData.resourceNameKey,
     t,
   });
-  showTooltip(content, event.currentTarget as HTMLElement);
+  showTooltip(content, event.currentTarget);
 }
 
 function handleRowLeave() {
@@ -117,18 +112,19 @@ function handleRowLeave() {
             class="metrics-status"
             :style="{ backgroundColor: dataset.backgroundColor[i] }"
           />
-          <Link
-            v-if="isLinkableResource && dataset.data[i] > 0"
-            class="metrics-label secondary-text-link"
-            :value="label"
-            :options="{ internal: true }"
-          />
-          <span
-            v-else
-            class="metrics-label text-secondary"
+          <component
+            :is="isLinkableResource && dataset.data[i] > 0 ? Link : 'span'"
+            class="metrics-label"
+            :class="{
+              'secondary-text-link': isLinkableResource && dataset.data[i] > 0,
+              'text-secondary': dataset.data[i] === 0 && !isLinkableResource
+            }"
+            v-bind="isLinkableResource && dataset.data[i] > 0 ? { value: label, options: { internal: true } } : {}"
           >
-            {{ label }}
-          </span>
+            <template v-if="!(isLinkableResource && dataset.data[i] > 0)">
+              {{ label }}
+            </template>
+          </component>
           <div class="metrics-value">
             {{ formattedValues[i] }}
           </div>
@@ -206,6 +202,7 @@ function handleRowLeave() {
   flex: 1;
   line-height: 1.5;
   padding-right: 16px;
+  color: var(--body-text);
 }
 
 .metrics-value {

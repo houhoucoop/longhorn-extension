@@ -1,12 +1,10 @@
-<script lang="ts" setup>
-import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from "vue";
+<script setup>
+import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
 import {
   Chart,
   DoughnutController,
   ArcElement,
   Tooltip,
-  ChartOptions,
-  Plugin,
 } from "chart.js";
 import { useStore } from "vuex";
 import { useI18n } from "@shell/composables/useI18n";
@@ -15,38 +13,44 @@ import {
   formatTooltipContent,
 } from "@longhorn/components/Charts/composable";
 
+const props = defineProps({
+  labels: {
+    type: Array,
+    default: () => [],
+  },
+  datasets: {
+    type: Array,
+    default: () => [],
+  },
+  suffix: {
+    type: String,
+    default: "",
+  },
+  resourceNameKey: {
+    type: String,
+    default: undefined,
+  },
+  activeIndex: {
+    type: [Number, null],
+    default: null,
+  },
+});
+
+const emit = defineEmits(["update:activeIndex"]);
+
 Chart.register(DoughnutController, ArcElement, Tooltip);
-
-type DoughnutChart = Chart<"doughnut", number[], string>;
-type OriginalIndex = number;
-type FilteredIndex = number;
-
-const props = withDefaults(
-  defineProps<{
-    labels?: string[];
-    datasets?: { data: (number | string)[]; backgroundColor: string[] }[];
-    suffix?: string;
-    resourceNameKey?: string;
-    activeIndex?: OriginalIndex | null;
-  }>(),
-  { suffix: "" }
-);
-
-const emit = defineEmits<{
-  (e: "update:activeIndex", value: OriginalIndex | null): void;
-}>();
 
 const store = useStore();
 const { t } = useI18n(store);
 const { showTooltip, hideTooltip } = useTooltip();
 
-const canvasRef = ref<HTMLCanvasElement | null>(null);
-let chartInstance: DoughnutChart | null = null;
+const canvasRef = ref(null);
+let chartInstance = null;
 const isMouseOutside = ref(true);
 const borderColor = ref("");
 const hoverBorderColor = ref("");
 
-function round(value: number): number {
+function round(value) {
   return Math.round(value * 100) / 100;
 }
 
@@ -62,10 +66,10 @@ function updateColorsFromTheme() {
 }
 
 const stableChartState = computed(() => {
-  const labels: string[] = [];
-  const data: number[] = [];
-  const backgroundColor: string[] = [];
-  const indexMap: OriginalIndex[] = [];
+  const labels = [];
+  const data = [];
+  const backgroundColor = [];
+  const indexMap = [];
 
   const sourceLabels = props.labels || [];
   const sourceDataset = props.datasets?.[0];
@@ -92,7 +96,7 @@ const stableChartState = computed(() => {
   };
 });
 
-const activeFilteredIndex = computed<FilteredIndex | null>(() => {
+const activeFilteredIndex = computed(() => {
   if (props.activeIndex == null) return null;
   const idx = stableChartState.value.indexMap.indexOf(props.activeIndex);
   return idx === -1 ? null : idx;
@@ -122,20 +126,20 @@ function handleMouseLeave() {
   hideTooltip();
 }
 
-const fixCenterPlugin: Plugin<"doughnut"> = {
+const fixCenterPlugin = {
   id: "fixCenter",
   beforeDraw(chart) {
     const meta = chart.getDatasetMeta(0);
     if (!meta?.data?.length) return;
     const { width, height } = chart;
     const outerRadius = Math.min(width, height) / 2;
-    const cutoutRatio = parseFloat(chart.options.cutout as string) / 100 || 0.8;
+    const cutoutRatio = parseFloat(chart.options.cutout) / 100 || 0.8;
     const innerRadius = outerRadius * cutoutRatio;
     const cx = width / 2;
     const cy = height / 2;
 
     meta.data.forEach((seg) => {
-      const arc = seg as ArcElement;
+      const arc = seg;
       seg.x = cx;
       seg.y = cy;
       arc.outerRadius = outerRadius - 2;
@@ -146,7 +150,7 @@ const fixCenterPlugin: Plugin<"doughnut"> = {
 
 const emptyDoughnutPlugin = {
   id: 'emptyDoughnut',
-  beforeDraw(chart: { getDatasetMeta?: any; options?: any; ctx?: any; width?: any; height?: any; }) {
+  beforeDraw(chart) {
     const meta = chart.getDatasetMeta(0);
 
     if (!meta?.data?.length) {
@@ -157,7 +161,7 @@ const emptyDoughnutPlugin = {
       const cy = height / 2;
 
       const outerRadius = Math.min(width, height) / 2;
-      const cutoutRatio = parseFloat(chart.options.cutout as string) / 100 || 0.8;
+      const cutoutRatio = parseFloat(chart.options.cutout) / 100 || 0.8;
       const innerRadius = outerRadius * cutoutRatio;
 
       const adjustedOuterRadius = outerRadius - 2;
@@ -188,7 +192,7 @@ const emptyDoughnutPlugin = {
   }
 };
 
-const chartOptions: ChartOptions<"doughnut"> = {
+const chartOptions = {
   rotation: -120,
   circumference: 240,
   cutout: "80%",
@@ -230,7 +234,7 @@ const chartOptions: ChartOptions<"doughnut"> = {
         resourceNameKey: props.resourceNameKey,
         t,
       });
-      showTooltip(content, mouseEvent as MouseEvent);
+      showTooltip(content, mouseEvent);
     } else {
       hideTooltip();
     }
@@ -244,11 +248,11 @@ const chartOptions: ChartOptions<"doughnut"> = {
   interaction: { mode: "nearest", intersect: false },
 };
 
-function attachListeners(canvas: HTMLCanvasElement) {
+function attachListeners(canvas) {
   canvas.addEventListener("mouseenter", handleMouseEnter);
   canvas.addEventListener("mouseleave", handleMouseLeave);
 }
-function detachListeners(canvas: HTMLCanvasElement) {
+function detachListeners(canvas) {
   canvas.removeEventListener("mouseenter", handleMouseEnter);
   canvas.removeEventListener("mouseleave", handleMouseLeave);
 }
@@ -277,9 +281,7 @@ function renderChart() {
 
 onMounted(() => {
   updateColorsFromTheme();
-  nextTick(() => {
-    renderChart();
-  });
+  renderChart();
 });
 
 onBeforeUnmount(cleanup);

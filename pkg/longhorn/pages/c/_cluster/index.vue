@@ -1,19 +1,30 @@
-<script lang="ts">
+<script>
 import TabTitle from "@shell/components/TabTitle";
-import ResourceChart from "@longhorn/components/Dashboard/ResourceChart.vue";
-import AppTooltip from "@longhorn/components/Dashboard/Tooltip.vue";
-import Events from "@longhorn/components/Dashboard/Events.vue";
-import LiveDate from "@shell/components/formatter/LiveDate.vue";
+import ResourceChart from "@longhorn/components/Dashboard/ResourceChart";
+import AppTooltip from "@longhorn/components/Dashboard/Tooltip";
+import Events from "@longhorn/components/Dashboard/Events";
+import LiveDate from "@shell/components/formatter/LiveDate";
 import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
   LONGHORN_RESOURCE_IDS,
 } from "@longhorn/constants/resources";
-import { NODE_STATUS, LonghornNode, DiskStatus } from "@longhorn/types/nodes";
-import { ChartData } from "@longhorn/types/dashboard";
-import { Volume } from "@longhorn/types/volumes";
+
+const NODE_STATUS = {
+  DOWN: "Down",
+  DISABLED: "Disabled",
+  UNSCHEDULABLE: "Unschedulable",
+  SCHEDULABLE: "Schedulable",
+};
+const LONGHORN_COLORS = {
+  SUCCESS: "#27AE5F",
+  WARNING: "#F1C40F",
+  DANGER: "#EF494A",
+  INFO: "#78C8CF",
+  MUTED: "#D9DDDF",
+};
+
 import { formatGiB } from "@longhorn/utils/formatter";
-import { LONGHORN_COLORS } from "@longhorn/constants/longhorn";
 
 export default {
   name: "LonghornDashboard",
@@ -37,12 +48,10 @@ export default {
   },
 
   methods: {
-    getNodeStatus(
-      node: LonghornNode
-    ): (typeof NODE_STATUS)[keyof typeof NODE_STATUS] {
+    getNodeStatus(node) {
       if (!node.status) return NODE_STATUS.DOWN;
 
-      const cond = (t: string) =>
+      const cond = (t) =>
         node.status?.conditions?.find((c) => c.type === t)?.status;
 
       const ready = cond("Ready");
@@ -56,9 +65,9 @@ export default {
       return NODE_STATUS.DOWN;
     },
 
-    hasData(chart?: ChartData): boolean {
+    hasData(chart) {
       if (!chart?.datasets?.length) return false;
-      const sum = chart.datasets[0].data.reduce((a: any, b: any) => a + b, 0);
+      const sum = chart.datasets[0].data.reduce((a, b) => a + b, 0);
       return sum > 0.01;
     },
 
@@ -68,9 +77,8 @@ export default {
         block: { sched: 0, reserved: 0, used: 0, disabled: 0 },
       };
 
-      this.nodes.forEach((node: LonghornNode) => {
-        const diskStatus: { [key: string]: DiskStatus } =
-          node.status?.diskStatus || {};
+      this.nodes.forEach((node) => {
+        const diskStatus = node.status?.diskStatus || {};
 
         const disksSpec = node.spec?.disks || {};
 
@@ -111,7 +119,7 @@ export default {
         Detached: 0,
       };
 
-      this.volumes.forEach((v: Volume) => {
+      this.volumes.forEach((v) => {
         const s = v.status;
         const state = s?.state;
         const robust = s?.robustness;
@@ -193,7 +201,7 @@ export default {
         [NODE_STATUS.DISABLED]: 0,
       };
 
-      this.nodes.forEach((n: LonghornNode) => counts[this.getNodeStatus(n)]++);
+      this.nodes.forEach((n) => counts[this.getNodeStatus(n)]++);
 
       const nodeLabels = [
         this.t("longhorn.node.schedulable"),
@@ -310,10 +318,10 @@ export default {
       }
 
       const timestamps = this.nodes
-        .map((n: { metadata: { creationTimestamp: any; }; }) => n?.metadata?.creationTimestamp)
-        .filter((ts: any) => !!ts)
-        .map((ts: string | number | Date) => new Date(ts))
-        .filter((d: { getTime: () => number; }) => !isNaN(d.getTime()));
+        .map((n) => n?.metadata?.creationTimestamp)
+        .filter((ts) => !!ts)
+        .map((ts) => new Date(ts))
+        .filter((d) => !isNaN(d.getTime()));
 
       if (!timestamps.length) {
         return new Date().toISOString();

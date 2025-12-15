@@ -1,18 +1,12 @@
-<script lang="ts">
-// @ts-ignore
+<script>
 import Loading from "@shell/components/Loading";
-// @ts-ignore
 import NameNsDescription from "@shell/components/form/NameNsDescription";
-// @ts-ignore
 import LabelValue from "@shell/components/LabelValue";
-// @ts-ignore
 import Tabbed from "@shell/components/Tabbed";
-// @ts-ignore
 import Tab from "@shell/components/Tabbed/Tab";
 import { _VIEW } from "@shell/config/query-params";
 import { LONGHORN_NAMESPACE } from "../constants/longhorn";
 import { LONGHORN_RESOURCES, LONGHORN_RESOURCE_IDS } from "../constants/resources";
-import { EngineImage } from "@longhorn/types/engineImages";
 
 export default {
   name: "DetailEngineImage",
@@ -31,7 +25,7 @@ export default {
       default: _VIEW,
     },
     value: {
-      type: Object as () => EngineImage,
+      type: Object,
       required: false,
       default: () => ({}),
     },

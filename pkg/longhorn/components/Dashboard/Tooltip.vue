@@ -1,18 +1,16 @@
-<script lang="ts" setup>
+<script setup>
 import { ref, watch, onBeforeUnmount, nextTick } from "vue";
 import { useTooltip } from "@longhorn/components/Charts/composable";
 import {
   createPopper,
-  Instance as PopperInstance,
-  VirtualElement,
 } from "@popperjs/core";
 
 const { tooltipState } = useTooltip();
 
-const tooltipEl = ref<HTMLDivElement | null>(null);
-const arrowEl = ref<HTMLDivElement | null>(null);
-let popperInstance: PopperInstance | null = null;
-let mouseMoveHandler: ((event: MouseEvent) => void) | null = null;
+const tooltipEl = ref(null);
+const arrowEl = ref(null);
+let popperInstance = null;
+let mouseMoveHandler = null;
 
 watch(
   () => tooltipState.value.visible,
@@ -32,19 +30,20 @@ watch(
     }
 
     if (isVisible && popperElement && referenceElement) {
-      let popperReference: HTMLElement | VirtualElement = referenceElement;
+      let popperReference = referenceElement;
 
       if (!("nodeType" in referenceElement)) {
+
         const initialRect = referenceElement.getBoundingClientRect();
         let latestCoords = { x: initialRect.left, y: initialRect.top };
 
-        mouseMoveHandler = (event: MouseEvent) => {
+        mouseMoveHandler = (event) => {
           latestCoords = { x: event.clientX, y: event.clientY };
           popperInstance?.update();
         };
 
-        const dynamicVirtualElement: VirtualElement = {
-          getBoundingClientRect: (): DOMRect => ({
+        const dynamicVirtualElement = {
+          getBoundingClientRect: () => ({
             width: 0,
             height: 0,
             top: latestCoords.y,
@@ -52,7 +51,7 @@ watch(
             right: latestCoords.x,
             bottom: latestCoords.y,
             x: latestCoords.x,
-            y: latestCoords.y,
+          	y: latestCoords.y,
             toJSON: () => JSON.stringify(latestCoords),
           }),
         };
