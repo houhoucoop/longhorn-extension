@@ -24,9 +24,23 @@ function _createVirtualElementFromEvent(event) {
 
 export function formatTooltipContent(options) {
   const { value, total } = options;
-  const percent = total > 0 ? ((value / total) * 100).toFixed(0) : "0";
+  const percentRaw = total > 0 ? (value / total) * 100 : 0;
 
-  return `${percent}%`;
+  let percentDisplay;
+
+  if (value === 0) {
+    percentDisplay = "0%";
+  } else {
+    const isInteger = Math.abs(percentRaw - Math.round(percentRaw)) < 0.00001;
+
+    if (isInteger) {
+      percentDisplay = `${Math.round(percentRaw)}%`;
+    } else {
+      percentDisplay = `${percentRaw.toFixed(2)}%`;
+    }
+  }
+
+  return percentDisplay;
 }
 
 export function useTooltip() {
