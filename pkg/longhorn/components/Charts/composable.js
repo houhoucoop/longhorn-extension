@@ -23,15 +23,11 @@ function _createVirtualElementFromEvent(event) {
 }
 
 export function formatTooltipContent(options) {
-  const { label, value, total, suffix = "", resourceNameKey, t } = options;
+  const { value, total } = options;
   const percent = total > 0 ? ((value / total) * 100).toFixed(0) : "0";
-  const resourceText = resourceNameKey ? t(resourceNameKey) : "";
-  const lowerCaseResourceText= resourceText ? resourceText.toLowerCase() : '';
 
-  return `${label} ${lowerCaseResourceText}: ${value}${suffix} (${percent}%)`;
+  return `${percent}%`;
 }
-
-// --- The Composable Function ---
 
 export function useTooltip() {
   const showTooltip = (content, refOrEvent) => {

@@ -420,12 +420,6 @@ export default {
   @media (min-width: map-get($breakpoints, "--viewport-9")) {
     &.grid-3 {
       grid-template-columns: repeat(3, 1fr);
-      overflow: auto;
-    }
-
-    &.grid-4 {
-      grid-template-columns: repeat(2, 1fr);
-      overflow: auto;
     }
   }
 

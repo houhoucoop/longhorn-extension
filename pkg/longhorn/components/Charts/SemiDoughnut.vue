@@ -58,10 +58,8 @@ function updateColorsFromTheme() {
   if (typeof window !== "undefined") {
     const bodyStyles = getComputedStyle(document.body);
     const bg = bodyStyles.getPropertyValue("--body-bg").trim();
-    const border = bodyStyles.getPropertyValue("--box-bg").trim();
 
     borderColor.value = bg || "#FFFFFF";
-    hoverBorderColor.value = border || "#F0F0FB";
   }
 }
 
@@ -201,10 +199,13 @@ const chartOptions = {
   elements: {
     arc: {
       borderRadius: 3,
-      hoverOffset: 2,
-      borderWidth: 2,
+      hoverOffset: 1,
+      borderWidth: 1,
       borderColor: (context) => {
-        return context.active ? hoverBorderColor.value : borderColor.value;
+        if (context.active) {
+          return context.dataset.backgroundColor?.[context.dataIndex] || '#000000';
+        }
+        return borderColor.value;
       },
     },
   },
