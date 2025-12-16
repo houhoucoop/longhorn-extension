@@ -249,13 +249,23 @@ function handleRowLeave() {
 }
 
 @media (min-width: map-get($breakpoints, "--viewport-9")) {
-  .split-container.horizontal {
+  .split-container {
     flex-direction: column;
-    align-items: center;
+
+    &.horizontal {
+      flex-direction: column;
+      align-items: center;
+    }
   }
 }
 
 @media (min-width: map-get($breakpoints, "--viewport-12")) {
+  .split-container {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: "1600px") {
   .split-container {
     flex-direction: column;
 

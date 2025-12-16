@@ -13,6 +13,11 @@ longhorn:
       title: Block Storage
     node:
       title: Nodes
+  node:
+    schedulable: Schedulable
+    unschedulable: Unschedulable
+    down: Down
+    disabled: Disabled
   volume:
     healthy: Healthy
     degraded: Degraded
@@ -24,11 +29,6 @@ longhorn:
     schedulable: Schedulable
     reserved: Reserved
     used: Used
-    disabled: Disabled
-  node:
-    schedulable: Schedulable
-    unschedulable: Unschedulable
-    down: Down
     disabled: Disabled
   engineImage:
     title: Engine Image
@@ -47,3 +47,12 @@ longhorn:
     form:
       validation:
         imageRequired: Image is required.
+  settings:
+    title: Settings
+    fetchError: "Failed to load settings from Longhorn API. Details: %{error}"
+    general:
+      label: general
+      description: Manage the basic configuration for this feature.
+    dangerZone:
+      label: Danger Zone
+      description: Advanced settings that may affect system stability, proceed with caution.

@@ -6,6 +6,7 @@ export const LONGHORN_DASHBOARD = "dashboard";
 export const LONGHORN_PAGES = {
   DASHBOARD: "Dashboard",
   ENGINE_IMAGES: "Engine Images",
+  SETTINGS: "Settings"
 };
 
 export const AVAILABLE_ACTIONS = {
