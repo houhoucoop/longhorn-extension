@@ -7,7 +7,7 @@ import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
   LONGHORN_RESOURCE_IDS,
-} from "../constants/resources";
+} from "@longhorn/types/resources";
 
 const props = defineProps({
   resource: {

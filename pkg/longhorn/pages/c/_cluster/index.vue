@@ -8,7 +8,7 @@ import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
   LONGHORN_RESOURCE_IDS,
-} from "@longhorn/constants/resources";
+} from "@longhorn/types/resources";
 
 const NODE_STATUS = {
   DOWN: "Down",

@@ -9,7 +9,7 @@ import CreateEditView from "@shell/mixins/create-edit-view";
 import FormValidation from "@shell/mixins/form-validation";
 import { _CREATE, _VIEW } from "@shell/config/query-params";
 import { exceptionToErrorsArray } from "@shell/utils/error";
-import { LONGHORN_NAMESPACE } from "../constants/longhorn";
+import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
 
 export default {
   name: "EditEngineImage",

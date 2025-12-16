@@ -1,9 +1,9 @@
-import { PRODUCT_NAME } from '../constants/longhorn'
-import Dashboard from '../pages/c/_cluster/index.vue';
-import ListLonghornResource from '../pages/c/_cluster/_resource/index.vue';
-import CreateLonghornResource from '../pages/c/_cluster/_resource/create.vue';
-import ViewLonghornResourced from '../pages/c/_cluster/_resource/_id.vue';
-import ViewLonghornNamespacedResource from '../pages/c/_cluster/_resource/_namespace/_id.vue';
+import { PRODUCT_NAME } from '@longhorn/types/longhorn'
+import Dashboard from '@longhorn/pages/c/_cluster/index.vue';
+import ListLonghornResource from '@longhorn/pages/c/_cluster/_resource/index.vue';
+import CreateLonghornResource from '@longhorn/pages/c/_cluster/_resource/create.vue';
+import ViewLonghornResourced from '@longhorn/pages/c/_cluster/_resource/_id.vue';
+import ViewLonghornNamespacedResource from '@longhorn/pages/c/_cluster/_resource/_namespace/_id.vue';
 
 const routes = [
   {
