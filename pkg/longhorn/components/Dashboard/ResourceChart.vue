@@ -275,4 +275,10 @@ function handleRowLeave() {
     }
   }
 }
+
+@media (min-width: "2000px") {
+  .split-container {
+    flex-direction: row;
+  }
+}
 </style>

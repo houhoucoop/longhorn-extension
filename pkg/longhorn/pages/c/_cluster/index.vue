@@ -396,49 +396,51 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+@media (max-width: map-get($breakpoints, "--viewport-9")) {
   .outlet {
     display: flex;
     flex-direction: column;
     width: max-content;
     min-width: 100%;
   }
+}
 
-  .glance-container {
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 0;
-    display: flex;
+.glance-container {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+  display: flex;
 
-    & > * {
-      margin-right: 40px;
+  & > * {
+    margin-right: 40px;
 
-      & SPAN {
-        font-weight: bold;
-      }
+    & SPAN {
+      font-weight: bold;
+    }
+  }
+}
+
+.resource-gauges {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+  padding-bottom: 24px;
+
+  @media (min-width: map-get($breakpoints, "--viewport-9")) {
+    &.grid-3,
+    &.grid-4 {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 
-  .resource-gauges {
-    display: grid;
-    gap: 24px;
-    grid-template-columns: 1fr;
-    padding-bottom: 24px;
-
-    @media (min-width: map-get($breakpoints, "--viewport-9")) {
-      &.grid-3,
-      &.grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-      }
+  @media (min-width: map-get($breakpoints, "--viewport-12")) {
+    &.grid-3 {
+      grid-template-columns: repeat(3, 1fr);
     }
 
-    @media (min-width: map-get($breakpoints, "--viewport-12")) {
-      &.grid-3 {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      &.grid-4 {
-        grid-template-columns: repeat(4, 1fr);
-      }
+    &.grid-4 {
+      grid-template-columns: repeat(4, 1fr);
     }
   }
+}
 </style>
