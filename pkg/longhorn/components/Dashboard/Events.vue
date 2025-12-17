@@ -16,7 +16,6 @@ import { NAME as EXPLORER } from "@shell/config/product/explorer";
 const reason = {
   ...REASON,
   ...{ canBeVariable: true },
-  width: 130,
 };
 
 const eventHeaders = [
