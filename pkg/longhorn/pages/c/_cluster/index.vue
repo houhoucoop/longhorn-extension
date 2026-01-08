@@ -24,7 +24,7 @@ const LONGHORN_COLORS = {
   MUTED: "#D9DDDF",
 };
 
-import { formatGiB } from "@longhorn/utils/formatter";
+import { bytesToGi } from "@longhorn/utils/formatter";
 
 export default {
   name: "LonghornDashboard",
@@ -175,10 +175,10 @@ export default {
         datasets: [
           {
             data: [
-              formatGiB(t.sched),
-              formatGiB(t.reserved),
-              formatGiB(t.used),
-              formatGiB(t.disabled),
+              bytesToGi(t.sched),
+              bytesToGi(t.reserved),
+              bytesToGi(t.used),
+              bytesToGi(t.disabled),
             ],
             backgroundColor: [
               LONGHORN_COLORS.SUCCESS,
@@ -249,10 +249,10 @@ export default {
         datasets: [
           {
             data: [
-              formatGiB(blocks.sched),
-              formatGiB(blocks.reserved),
-              formatGiB(blocks.used),
-              formatGiB(blocks.disabled),
+              bytesToGi(blocks.sched),
+              bytesToGi(blocks.reserved),
+              bytesToGi(blocks.used),
+              bytesToGi(blocks.disabled),
             ],
             backgroundColor: [
               LONGHORN_COLORS.SUCCESS,

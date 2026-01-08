@@ -5,6 +5,7 @@ export const LONGHORN_DASHBOARD = "dashboard";
 
 export const LONGHORN_PAGES = {
   DASHBOARD: "Dashboard",
+  NODES: "Nodes",
   ENGINE_IMAGES: "Engine Images",
   SETTINGS: "Settings"
 };

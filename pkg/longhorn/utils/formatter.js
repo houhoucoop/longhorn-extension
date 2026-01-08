@@ -6,7 +6,7 @@ const GiB = 1024 * 1024 * 1024;
  * @param bytes - The raw number of bytes.
  * @returns The formatted GiB value as a number.
  */
-export function formatGiB(bytes) {
+export function bytesToGi(bytes) {
   const value = bytes / GiB;
 
   if (value === 0) {
@@ -22,5 +22,5 @@ export function formatGiB(bytes) {
     return formattedValue;
   }
 
-  return parseFloat(value.toFixed(1));
+  return parseFloat(value.toFixed(2));
 }

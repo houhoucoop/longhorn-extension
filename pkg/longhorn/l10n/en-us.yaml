@@ -1,3 +1,8 @@
+generic:
+  enable: Enable
+  disabled: Disabled
+  trueOption: "True"
+  falseOption: "False"
 longhorn:
   dashboard:
     title: Dashboard
@@ -18,6 +23,36 @@ longhorn:
     unschedulable: Unschedulable
     down: Down
     disabled: Disabled
+    fields:
+      ready: Ready
+      schedulable: Schedulable
+      replicas: Replicas
+      allocated: Allocated
+      used: Used
+      size: Size
+      tags: Tags
+      diskId: Disk ID
+      diskType: Type
+      path: Path
+    tab:
+      basics: Basics
+      disks: Disks
+    form:
+      region: Region
+      zone: Zone
+      scheduling: Scheduling
+      evictionRequested: Eviction Requested
+      instanceManagerCPURequest: Instance Manager CPU Request
+      tags: Tags
+      addTags: Add Tags
+      diskType: Disk Type
+      diskPath: Disk Path
+      storageAvailable: Storage Available
+      storageScheduled: Storage Scheduled
+      storageMaximum: Storage Maximum
+      storageReserved: Storage Reserved
+      removeTooltip: To delete this disk, disable scheduling and ensure that no replicas and backing images are in use
+
   volume:
     healthy: Healthy
     degraded: Degraded

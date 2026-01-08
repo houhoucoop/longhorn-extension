@@ -1,4 +1,127 @@
-import { STATE, NAME as NAME_COL } from "@shell/config/table-headers";
+import { STATE, NAME as NAME_COL, AGE } from "@shell/config/table-headers";
+
+export const NODES_HEADER = [
+  STATE,
+  {
+    ...NAME_COL,
+    width: 200,
+  },
+  {
+    name: "ready",
+    labelKey: "longhorn.node.fields.ready",
+    search: "$.status.conditions[?(@.type=='Ready')].status",
+    sort: ["$.status.conditions[?(@.type=='Ready')].status"],
+    value: "$.status.conditions[?(@.type=='Ready')].status",
+    width: 80,
+    align: "center",
+  },
+  {
+    name: "schedulable",
+    labelKey: "longhorn.node.fields.schedulable",
+    value: "spec.allowScheduling",
+    sort: "spec.allowScheduling",
+    search: "spec.allowScheduling",
+    formatter: "CapitalizedValue",
+    width: 100,
+    align: "center",
+  },
+  {
+    name: "replicas",
+    labelKey: "longhorn.node.fields.replicas",
+    value: "replicas",
+    formatter: "Link",
+    width: 80,
+    align: "center",
+  },
+  {
+    name: "allocated",
+    labelKey: "longhorn.node.fields.allocated",
+    value: "disksAllocated",
+    formatter: "ConsumptionGauge",
+  },
+  {
+    name: "used",
+    labelKey: "longhorn.node.fields.used",
+    value: "disksUsed",
+    formatter: "ConsumptionGauge",
+  },
+  {
+    name: "size",
+    labelKey: "longhorn.node.fields.size",
+    value: "disksSize",
+    formatter: "DiskSize",
+    width: 200,
+    align: "center",
+  },
+  {
+    name: "tags",
+    labelKey: "longhorn.node.fields.tags",
+    value: "spec.tags",
+    formatter: "Tag",
+  },
+  AGE,
+];
+
+export const DISKS_HEADERS = [
+  {
+    name: "schedulable",
+    labelKey: "longhorn.node.fields.schedulable",
+    value: "allowScheduling",
+    sort: "allowScheduling",
+    search: "allowScheduling",
+    formatter: "CapitalizedValue",
+    width: 100,
+    align: "center",
+  },
+  {
+    name: "id",
+    labelKey: "longhorn.node.fields.diskId",
+    value: "id",
+    sort: ["id"],
+    width: 200,
+  },
+  {
+    name: "diskType",
+    labelKey: "longhorn.node.fields.diskType",
+    value: "diskType",
+    width: 100,
+  },
+  {
+    name: "path",
+    labelKey: "longhorn.node.fields.path",
+    value: "path",
+    sort: ["path"],
+    width: 100,
+  },
+  {
+    name: "replicas",
+    labelKey: "longhorn.node.fields.replicas",
+    value: "scheduledReplicaCounts",
+    formatter: "Link",
+    width: 80,
+    align: "center",
+  },
+  {
+    name: "allocated",
+    labelKey: "longhorn.node.fields.allocated",
+    value: "diskAllocated",
+    formatter: "ConsumptionGauge",
+  },
+  {
+    name: "used",
+    labelKey: "longhorn.node.fields.used",
+    value: "diskUsed",
+    formatter: "ConsumptionGauge",
+  },
+  {
+    name: "size",
+    labelKey: "longhorn.node.fields.size",
+    value: "diskSize",
+    formatter: "DiskSize",
+    width: 200,
+    align: "center",
+  },
+];
 
 export const ENGINE_IMAGES_HEADER = [
   STATE,
