@@ -8,8 +8,9 @@ import CreateEditView from "@shell/mixins/create-edit-view";
 import FormValidation from "@shell/mixins/form-validation";
 import { _EDIT, _VIEW } from "@shell/config/query-params";
 import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
-import { bytesToGi } from "@longhorn/utils/formatter";
-import { GiB_UNIT } from "@longhorn/types/units";
+import { exceptionToErrorsArray } from "@shell/utils/error";
+import { get } from "@shell/utils/object";
+import { randomStr } from "@shell/utils/string";
 
 import Basics from "./Basics";
 import Disks from "./Disks";
@@ -26,59 +27,229 @@ export default {
     Disks,
   },
   mixins: [CreateEditView, FormValidation],
+
   props: {
     mode: { type: String, default: _EDIT },
     value: { type: Object, required: true },
   },
+
   data() {
-    return { _VIEW, LONGHORN_NAMESPACE, GiB_UNIT };
+    return {
+      _VIEW,
+      LONGHORN_NAMESPACE,
+      fvFormRuleSets: [],
+      fvReportedValidationPaths: [],
+    };
   },
+
   computed: {
-    disks() {
-      return this.value?.disks || [];
+    validationSchema() {
+      const disks = this.value.disks || [];
+
+      return {
+        basics: [
+          {
+            key: "instanceManagerCPURequest",
+            path: "spec.instanceManagerCPURequest",
+            rules: ["requiredInt", "isInteger", "isPositive"],
+            translationKey: "longhorn.node.form.instanceManagerCPURequest",
+          },
+        ],
+        disks: disks.flatMap((disk) => [
+          {
+            key: disk.id,
+            field: "name",
+            path: `spec.disks.${disk.id}.name`,
+            rules: ["required", "diskNameUnique"],
+            translationKey: "longhorn.node.form.name",
+          },
+          {
+            key: disk.id,
+            field: "path",
+            path: `spec.disks.${disk.id}.path`,
+            rules: ["required"],
+            translationKey: "longhorn.node.form.diskPath",
+          },
+          {
+            key: disk.id,
+            field: "storageReserved",
+            path: `spec.disks.${disk.id}.storageReserved`,
+            rules: ["requiredInt", "isInteger", "isPositive"],
+            translationKey: "longhorn.node.form.storageReserved",
+          },
+        ]),
+      };
+    },
+
+    fvExtraRules() {
+      return {
+        diskNameUnique: (val) => {
+          const disks = Object.values(this.value.spec?.disks || {});
+          return disks.filter((d) => d.name === val).length > 1
+            ? this.t("validation.duplicate", {
+                key: this.t("longhorn.node.form.name"),
+              })
+            : undefined;
+        },
+      };
+    },
+
+    tabErrors() {
+      const hasError = (fields) =>
+        fields.some((f) => {
+          const val = get(this.value, f.path);
+          const rules = this.fvGetPathRules(f.path) || [];
+
+          return rules.some((rule) => typeof rule(val) === "string");
+        });
+
+      return {
+        basics: hasError(this.validationSchema.basics),
+        disks: hasError(this.validationSchema.disks),
+      };
+    },
+
+    isFormValid() {
+      return !this.tabErrors.basics && !this.tabErrors.disks;
+    },
+
+    basicValidationRules() {
+      return this.validationSchema.basics.reduce(
+        (acc, f) => ({ ...acc, [f.key]: this.fvGetAndReportPathRules(f.path) }),
+        {}
+      );
+    },
+
+    diskValidationRules() {
+      return this.validationSchema.disks.reduce((acc, f) => {
+        acc[f.key] = acc[f.key] || {};
+        acc[f.key][f.field] = this.fvGetAndReportPathRules(f.path);
+        return acc;
+      }, {});
     },
     nodeConditions() {
       return this.mapConditions(this.value?.status?.conditions);
     },
-  },
-  methods: {
-    bytesToGi,
-    mapConditions(conditions = []) {
-      if (!Array.isArray(conditions)) return [];
-      return conditions.map(
-        ({ type, status, error, transitioning, message }) => {
-          const stateBackground = error
-            ? "bg-error"
-            : transitioning
-            ? "bg-warning"
-            : status === "True"
-            ? "bg-success"
-            : "bg-info";
-          const icon = error
-            ? "icon-error"
-            : transitioning
-            ? "icon-warning"
-            : status === "True"
-            ? "icon-checkmark"
-            : "icon-info";
-          return {
-            key: type,
-            tooltip: message,
-            value: { stateBackground, stateDisplay: type },
-            icon,
-          };
-        }
-      );
+
+    diskConditions() {
+      return (this.value.disks || []).reduce((acc, disk) => {
+        if (disk.id && disk.conditions)
+          acc[disk.id] = this.mapConditions(disk.conditions);
+        return acc;
+      }, {});
     },
+  },
+
+  methods: {
+    mapConditions(conditions = []) {
+      return (Array.isArray(conditions) ? conditions : []).map((c) => {
+        const isError = c.error || c.status === "False";
+        const isSuccess = c.status === "True" && !isError;
+        return {
+          key: c.type,
+          tooltip: c.message,
+          value: {
+            stateBackground: isError
+              ? "bg-error"
+              : c.transitioning
+              ? "bg-warning"
+              : isSuccess
+              ? "bg-success"
+              : "bg-info",
+            stateDisplay: c.type,
+          },
+          icon: isError
+            ? "icon-error"
+            : c.transitioning
+            ? "icon-warning"
+            : isSuccess
+            ? "icon-checkmark"
+            : "icon-info",
+        };
+      });
+    },
+
+    addDisk() {
+      const id = `disk-${randomStr(6)}`;
+      const newDisk = {
+        id,
+        name: id,
+        isNew: true,
+        path: "",
+        storageReserved: 0,
+        allowScheduling: false,
+        evictionRequested: false,
+        diskDriver: "",
+        diskType: "filesystem",
+        tags: [],
+      };
+      this.value.spec.disks = {
+        ...(this.value.spec.disks || {}),
+        [id]: newDisk,
+      };
+    },
+
+    removeDisk(id) {
+      const diskId = typeof id === "string" ? id : id?.id;
+      const { [diskId]: _, ...remainingDisks } = this.value.spec?.disks || {};
+      if (diskId) this.value.spec.disks = remainingDisks;
+    },
+
     async save(buttonDone) {
       try {
+        if (!this.isFormValid) {
+          return buttonDone(false);
+        }
+
         await this.actuallySave();
         buttonDone(true);
         this.done();
       } catch (err) {
-        this.errors = [err];
+        this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
+    },
+  },
+
+  watch: {
+    validationSchema: {
+      handler(neu) {
+        const all = [...neu.basics, ...neu.disks];
+
+        this.fvFormRuleSets = all.map((f) => ({
+          path: f.path,
+          rules: f.rules,
+          translationKey: f.translationKey,
+        }));
+
+        this.fvReportedValidationPaths = all.map((f) => f.path);
+      },
+      immediate: true,
+      deep: true,
+    },
+
+    "value.spec.disks": {
+      handler(neu) {
+        if (!neu) return;
+        let hasChanged = false;
+        const disks = { ...neu };
+        for (const id in disks) {
+          if (
+            !disks[id].hasOwnProperty("name") ||
+            disks[id].isNew === undefined
+          ) {
+            disks[id] = {
+              ...disks[id],
+              name: disks[id].name || id,
+              isNew: disks[id].isNew ?? false,
+            };
+            hasChanged = true;
+          }
+        }
+        if (hasChanged) this.value.spec = { ...this.value.spec, disks };
+      },
+      immediate: true,
+      deep: true,
     },
   },
 };
@@ -91,7 +262,7 @@ export default {
       :done-route="doneRoute"
       :mode="mode"
       :resource="value"
-      :validation-passed="fvFormIsValid"
+      :validation-passed="isFormValid"
       :errors="fvUnreportedValidationErrors"
       @finish="save"
       @cancel="done"
@@ -105,17 +276,31 @@ export default {
       />
 
       <Tabbed sideTabs :resource="value">
-        <Tab name="basics" labelKey="longhorn.node.tab.basics">
-          <Basics :mode="mode" :value="value" :conditions="nodeConditions" />
+        <Tab
+          name="basics"
+          labelKey="longhorn.node.tab.basics"
+          :error="tabErrors.basics"
+        >
+          <Basics
+            :mode="mode"
+            :value="value"
+            :conditions="nodeConditions"
+            :rules="basicValidationRules"
+          />
         </Tab>
 
-        <Tab name="disk" labelKey="longhorn.node.tab.disks">
+        <Tab
+          name="disk"
+          labelKey="longhorn.node.tab.disks"
+          :error="tabErrors.disks"
+        >
           <Disks
             :mode="mode"
-            :disks="disks"
-            :bytesToGi="bytesToGi"
-            :GiB_UNIT="GiB_UNIT"
-            :mapConditions="mapConditions"
+            :value="value"
+            :conditions="diskConditions"
+            :rules="diskValidationRules"
+            @add="addDisk"
+            @remove="removeDisk"
           />
         </Tab>
       </Tabbed>

@@ -1,34 +1,45 @@
 <script>
-import { RadioGroup } from "@components/Form/Radio";
-import UnitInput from "@shell/components/form/UnitInput.vue";
-import { LabeledInput } from "@components/Form/LabeledInput";
-import ArrayList from "@shell/components/form/ArrayList";
-import InfoBox from "@shell/components/InfoBox";
-import LabelValue from "@shell/components/LabelValue";
-import { BadgeState } from "@components/BadgeState";
 import { _VIEW } from "@shell/config/query-params";
+import UnitInput from "@shell/components/form/UnitInput.vue";
+import ArrayList from "@shell/components/form/ArrayList";
+import LabelValue from "@shell/components/LabelValue";
+import ArrayListGrouped from "@shell/components/form/ArrayListGrouped";
+import { LabeledInput } from "@components/Form/LabeledInput";
+import LabeledSelect from "@shell/components/form/LabeledSelect";
+import Banner from "@components/Banner/Banner.vue";
+import { RadioGroup } from "@components/Form/Radio";
+import { BadgeState } from "@components/BadgeState";
+import { bytesToGi } from "@longhorn/utils/formatter";
+import { GiB_UNIT } from "@longhorn/types/units";
 
 export default {
   components: {
     BadgeState,
-    LabeledInput,
     UnitInput,
+    LabeledInput,
+    LabeledSelect,
     RadioGroup,
     ArrayList,
-    InfoBox,
     LabelValue,
+    ArrayListGrouped,
+    Banner,
   },
   props: {
     mode: { type: String, required: true },
-    disks: { type: Array, required: true },
-    bytesToGi: { type: Function, required: true },
-    GiB_UNIT: { type: String, required: true },
-    mapConditions: { type: Function, required: true },
+    value: { type: Object, required: true },
+    conditions: { type: Object, default: () => ({}) },
+    rules: { type: Object, default: () => ({}) },
   },
   data() {
-    return { _VIEW };
+    return { _VIEW, GiB_UNIT };
   },
   computed: {
+    diskTypeOptions() {
+      return [
+        { label: this.t("longhorn.node.form.fileSystem"), value: "filesystem" },
+        { label: this.t("longhorn.node.form.block"), value: "block" },
+      ];
+    },
     nodeSchedulingOptions() {
       return [
         { label: this.t("generic.enabled"), value: true },
@@ -43,9 +54,14 @@ export default {
     },
   },
   methods: {
+    bytesToGi,
     canBeRemoved(disk) {
-      const isScheduled = (disk.storageScheduled || 0) > 0;
-      const schedulingAllowed = disk.allowScheduling === true;
+      if (this.mode === _VIEW) return false;
+      if (disk.value.isNew) return true;
+
+      const isScheduled = (disk.value.storageScheduled || 0) > 0;
+      const schedulingAllowed = disk.value.allowScheduling === true;
+
       return !isScheduled && !schedulingAllowed;
     },
   },
@@ -54,114 +70,135 @@ export default {
 
 <template>
   <div>
-    <InfoBox
-      v-for="disk in disks"
-      :key="disk.id || disk.diskPath"
-      class="mb-20"
+    <Banner color="info" label-key="longhorn.node.form.removeDiskMessage" />
+    <ArrayListGrouped
+      :value="value.disks"
+      :mode="mode"
+      :can-remove="canBeRemoved"
+      :add-label="t('longhorn.node.form.addDisk')"
+      @add="$emit('add')"
+      @remove="$emit('remove', $event.row.value.id)"
     >
-      <div class="box-head mb-20">
-        <h3>{{ disk.diskName }}</h3>
-        <button
-          v-if="mode !== _VIEW"
-          type="button"
-          class="role-link btn btn-sm remove"
-          :disabled="!canBeRemoved(disk)"
-          v-clean-tooltip="
-            !canBeRemoved(disk) ? t('longhorn.node.form.removeTooltip') : null
-          "
-        >
-          <i class="icon icon-x" />
-        </button>
-      </div>
+      <template #default="{ row: { value: disk } }">
+        <div v-if="disk && value.spec.disks[disk.id]" class="disk-container">
+          <div class="row mb-10 conditions">
+            <BadgeState
+              v-for="condition in conditions[disk.id]"
+              :key="condition.key"
+              class="mr-10 mb-10"
+              :value="condition.value"
+              :icon="condition.icon"
+              v-clean-tooltip="condition.tooltip"
+            />
+          </div>
 
-      <div class="row mb-10 conditions">
-        <BadgeState
-          v-for="condition in mapConditions(disk.conditions)"
-          :key="condition.key"
-          class="mr-10 mb-10"
-          :value="condition.value"
-          :icon="condition.icon"
-          v-clean-tooltip="condition.tooltip"
-        />
-      </div>
+          <div class="row mb-10">
+            <div class="col span-6">
+              <LabeledInput
+                v-model:value="value.spec.disks[disk.id].name"
+                class="mb-10"
+                :label="t('longhorn.node.form.name')"
+                :mode="mode"
+                :disabled="mode === _VIEW || !value.spec.disks[disk.id].isNew"
+                :rules="rules[disk.id]?.name || []"
+              />
+              <LabeledSelect
+                v-model:value="value.spec.disks[disk.id].diskType"
+                class="mb-10"
+                :label="t('longhorn.node.form.diskType')"
+                :mode="mode"
+                :disabled="mode === _VIEW || !value.spec.disks[disk.id].isNew"
+                :options="diskTypeOptions"
+              />
+              <LabeledInput
+                v-model:value="value.spec.disks[disk.id].path"
+                class="mb-10"
+                :label="t('longhorn.node.form.diskPath')"
+                :mode="mode"
+                :disabled="mode === _VIEW || !value.spec.disks[disk.id].isNew"
+                :rules="rules[disk.id]?.path || []"
+              />
+              <UnitInput
+                v-model:value="value.spec.disks[disk.id].storageReserved"
+                class="mb-10"
+                :input-exponent="3"
+                :increment="1024"
+                :label="t('longhorn.node.form.storageReserved')"
+                :mode="mode"
+                :min="0"
+                :required="true"
+                :rules="rules[disk.id]?.storageReserved || []"
+              />
+            </div>
+          </div>
 
-      <div class="row mb-10">
-        <div class="col span-6">
-          <LabeledInput
-            v-model:value="disk.diskType"
-            class="mb-10"
-            :label="t('longhorn.node.form.diskType')"
-            :mode="mode"
-            disabled
-          />
-          <LabeledInput
-            v-model:value="disk.diskPath"
-            class="mb-10"
-            :label="t('longhorn.node.form.diskPath')"
-            :mode="mode"
-            disabled
-          />
-          <UnitInput
-            v-model:value="disk.storageReserved"
-            class="mb-10"
-            :input-exponent="3"
-            :increment="1024"
-            :label="t('longhorn.node.form.storageReserved')"
-            :mode="mode"
-            positive
-          />
-        </div>
-      </div>
+          <div class="row mb-20">
+            <div class="col span-4">
+              <LabelValue
+                :name="t('longhorn.node.form.storageAvailable')"
+                :value="
+                  disk.isNew
+                    ? `0 ${GiB_UNIT}`
+                    : `${bytesToGi(disk.storageAvailable || 0)} ${GiB_UNIT}`
+                "
+              />
+            </div>
+            <div class="col span-4">
+              <LabelValue
+                :name="t('longhorn.node.form.storageScheduled')"
+                :value="
+                  disk.isNew
+                    ? `0 ${GiB_UNIT}`
+                    : `${bytesToGi(disk.storageScheduled || 0)} ${GiB_UNIT}`
+                "
+              />
+            </div>
+            <div class="col span-4">
+              <LabelValue
+                :name="t('longhorn.node.form.storageMaximum')"
+                :value="
+                  disk.isNew
+                    ? `0 ${GiB_UNIT}`
+                    : `${bytesToGi(disk.storageMaximum || 0)} ${GiB_UNIT}`
+                "
+              />
+            </div>
+          </div>
 
-      <div class="row mb-20">
-        <div class="col span-4">
-          <LabelValue
-            :name="t('longhorn.node.form.storageAvailable')"
-            :value="`${bytesToGi(disk.storageAvailable)} ${GiB_UNIT}`"
-          />
+          <div class="row">
+            <div class="col span-6">
+              <RadioGroup
+                v-model:value="value.spec.disks[disk.id].allowScheduling"
+                :name="`diskScheduling-${disk.id}`"
+                class="mb-20"
+                :label="t('longhorn.node.form.scheduling')"
+                :mode="mode"
+                :options="nodeSchedulingOptions"
+                :row="true"
+              />
+              <RadioGroup
+                v-model:value="value.spec.disks[disk.id].evictionRequested"
+                :name="`diskEviction-${disk.id}`"
+                class="mb-20"
+                :label="t('longhorn.node.form.evictionRequested')"
+                :mode="mode"
+                :options="evictionRequestedOptions"
+                :row="true"
+              />
+              <ArrayList
+                v-model:value="value.spec.disks[disk.id].tags"
+                :mode="mode"
+                :title="t('longhorn.node.form.tags')"
+                :add-label="t('longhorn.node.form.addTags')"
+              >
+                <template #title>
+                  <h4>{{ t("longhorn.node.form.tags") }}</h4>
+                </template>
+              </ArrayList>
+            </div>
+          </div>
         </div>
-        <div class="col span-4">
-          <LabelValue
-            :name="t('longhorn.node.form.storageScheduled')"
-            :value="`${bytesToGi(disk.storageScheduled)} ${GiB_UNIT}`"
-          />
-        </div>
-        <div class="col span-4">
-          <LabelValue
-            :name="t('longhorn.node.form.storageMaximum')"
-            :value="`${bytesToGi(disk.storageMaximum)} ${GiB_UNIT}`"
-          />
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col span-6">
-          <RadioGroup
-            v-model:value="disk.allowScheduling"
-            :name="`diskScheduling-${disk.id}`"
-            class="mb-20"
-            :label="t('longhorn.node.form.scheduling')"
-            :mode="mode"
-            :options="nodeSchedulingOptions"
-            :row="true"
-          />
-          <RadioGroup
-            v-model:value="disk.evictionRequested"
-            :name="`diskEviction-${disk.id}`"
-            class="mb-20"
-            :label="t('longhorn.node.form.evictionRequested')"
-            :mode="mode"
-            :options="evictionRequestedOptions"
-            :row="true"
-          />
-          <ArrayList
-            v-model:value="disk.tags"
-            :mode="mode"
-            :title="t('longhorn.node.form.tags')"
-            :add-label="t('longhorn.node.form.addTags')"
-          />
-        </div>
-      </div>
-    </InfoBox>
+      </template>
+    </ArrayListGrouped>
   </div>
 </template>

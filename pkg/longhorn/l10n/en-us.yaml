@@ -3,6 +3,9 @@ generic:
   disabled: Disabled
   trueOption: "True"
   falseOption: "False"
+validation:
+  field: Field
+  duplicate: "{key} must be unique"
 longhorn:
   dashboard:
     title: Dashboard
@@ -45,14 +48,17 @@ longhorn:
       instanceManagerCPURequest: Instance Manager CPU Request
       tags: Tags
       addTags: Add Tags
+      name: Name
       diskType: Disk Type
       diskPath: Disk Path
       storageAvailable: Storage Available
       storageScheduled: Storage Scheduled
       storageMaximum: Storage Maximum
       storageReserved: Storage Reserved
-      removeTooltip: To delete this disk, disable scheduling and ensure that no replicas and backing images are in use
-
+      removeDiskMessage: To delete this disk, disable scheduling and ensure that no replicas and backing images are in use
+      addDisk: Add Disk
+      fileSystem: File system
+      block: Block
   volume:
     healthy: Healthy
     degraded: Degraded

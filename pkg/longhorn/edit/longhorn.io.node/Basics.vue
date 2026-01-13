@@ -8,9 +8,10 @@ import { BadgeState } from "@components/BadgeState";
 export default {
   components: { BadgeState, LabeledInput, UnitInput, RadioGroup, ArrayList },
   props: {
-    mode:      { type: String, required: true },
-    value:     { type: Object, required: true },
-    conditions: { type: Array, default: () => [] }
+    mode: { type: String, required: true },
+    value: { type: Object, required: true },
+    conditions: { type: Array, default: () => [] },
+    rules: { type: Object, default: () => ({}) }
   },
   computed: {
     nodeSchedulingOptions() {
@@ -25,7 +26,7 @@ export default {
         { label: this.t("generic.falseOption"), value: false },
       ];
     },
-  }
+  },
 };
 </script>
 
@@ -64,7 +65,9 @@ export default {
           :label="t('longhorn.node.form.instanceManagerCPURequest')"
           :mode="mode"
           suffix="m"
-          positive
+          :min="0"
+          :required="true"
+          :rules="rules?.instanceManagerCPURequest"
         />
         <RadioGroup
           v-model:value="value.spec.allowScheduling"
@@ -98,3 +101,10 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.conditions {
+  display: flex;
+  flex-wrap: wrap;
+}
+</style>
