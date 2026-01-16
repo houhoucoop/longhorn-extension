@@ -7,8 +7,13 @@ export const LONGHORN_PAGES = {
   DASHBOARD: "Dashboard",
   NODES: "Nodes",
   ENGINE_IMAGES: "Engine Images",
-  SETTINGS: "Settings"
+  SETTINGS: "Settings",
+  INSTANCE_MANAGER: "Instance Managers"
 };
+
+export const LONGHORN_GROUP = {
+  ADVANCED: "Advanced"
+}
 
 export const AVAILABLE_ACTIONS = {
   EDIT: "goToEdit",

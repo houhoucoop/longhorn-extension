@@ -7,7 +7,7 @@ import LiveDate from "@shell/components/formatter/LiveDate";
 import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
-  LONGHORN_RESOURCE_IDS,
+  LONGHORN_SETTINGS,
 } from "@longhorn/types/resources";
 
 const NODE_STATUS = {
@@ -42,7 +42,7 @@ export default {
       }),
       serverVersion: this.$store.dispatch(`${inStore}/find`, {
         type: LONGHORN_RESOURCES.SETTINGS,
-        id: LONGHORN_RESOURCE_IDS.CURRENT_LONGHORN_VERSION,
+        id: LONGHORN_SETTINGS.CURRENT_LONGHORN_VERSION,
       }),
     });
   },
@@ -337,7 +337,7 @@ export default {
       return (
         this.$store.getters[`${this.inStore}/byId`](
           LONGHORN_RESOURCES.SETTINGS,
-          LONGHORN_RESOURCE_IDS.CURRENT_LONGHORN_VERSION
+          LONGHORN_SETTINGS.CURRENT_LONGHORN_VERSION
         )?.value || ""
       );
     },

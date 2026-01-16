@@ -6,7 +6,7 @@ import ResourceTable from "@shell/components/ResourceTable";
 import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
-  LONGHORN_RESOURCE_IDS,
+  LONGHORN_SETTINGS,
 } from "@longhorn/types/resources";
 
 const props = defineProps({
@@ -52,7 +52,7 @@ async function fetchData() {
 
       defaultEngineImage: store.dispatch(`${inStore.value}/find`, {
         type: LONGHORN_RESOURCES.SETTINGS,
-        id: LONGHORN_RESOURCE_IDS.DEFAULT_ENGINE_IMAGE,
+        id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
       }),
     };
 

@@ -6,7 +6,7 @@ import Tabbed from "@shell/components/Tabbed";
 import Tab from "@shell/components/Tabbed/Tab";
 import { _VIEW } from "@shell/config/query-params";
 import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
-import { LONGHORN_RESOURCES, LONGHORN_RESOURCE_IDS } from "@longhorn/types/resources";
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from "@longhorn/types/resources";
 
 export default {
   name: "DetailEngineImage",
@@ -35,7 +35,7 @@ export default {
     const inStore = this.$store.getters["currentProduct"].inStore;
     await this.$store.dispatch(`${inStore}/find`, {
       type: LONGHORN_RESOURCES.SETTINGS,
-      id: LONGHORN_RESOURCE_IDS.DEFAULT_ENGINE_IMAGE,
+      id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
     });
   },
 

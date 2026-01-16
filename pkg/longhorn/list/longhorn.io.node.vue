@@ -7,7 +7,7 @@ import SortableTable from "@shell/components/SortableTable";
 import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
-  LONGHORN_RESOURCE_IDS,
+  LONGHORN_SETTINGS,
 } from "@longhorn/types/resources";
 import { DISKS_HEADERS } from '@longhorn/config/table-headers'
 
@@ -40,9 +40,6 @@ const getAll = (type) => {
 const rows = computed(() => getAll(props.resource));
 const volumes = computed(() => getAll(LONGHORN_RESOURCES.VOLUMES));
 
-console.log("🚀🚀🚀🚀🚀 ~ rows:", rows);
-console.log("🚀🚀🚀🚀🚀 ~ volumes:", volumes);
-
 async function fetchData() {
   isLoading.value = true;
   loadError.value = null;
@@ -63,7 +60,7 @@ async function fetchData() {
       }),
       defaultStorageOverProvisioningPercentage: store.dispatch(`${inStore.value}/find`, {
         type: LONGHORN_RESOURCES.SETTINGS,
-        id: LONGHORN_RESOURCE_IDS.STORAGE_OVER_PROVISIONING_PERCENTAGE,
+        id: LONGHORN_SETTINGS.STORAGE_OVER_PROVISIONING_PERCENTAGE,
       }),
     };
 

@@ -1,5 +1,5 @@
 import LonghornModel from "../longhorn";
-import { LONGHORN_RESOURCES, LONGHORN_RESOURCE_IDS } from "@longhorn/types/resources";
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from "@longhorn/types/resources";
 
 export default class NodeModel extends LonghornModel {
   get disks() {
@@ -49,7 +49,7 @@ export default class NodeModel extends LonghornModel {
   get storageOverProvisioningPercentage() {
     const setting = this.$getters?.["byId"]?.(
       LONGHORN_RESOURCES.SETTINGS,
-      LONGHORN_RESOURCE_IDS.STORAGE_OVER_PROVISIONING_PERCENTAGE
+      LONGHORN_SETTINGS.STORAGE_OVER_PROVISIONING_PERCENTAGE
     );
     return Number(setting?.value || 100);
   }

@@ -1,6 +1,6 @@
 import LonghornModel from "./longhorn";
 import { AVAILABLE_ACTIONS } from "@longhorn/types/longhorn";
-import { LONGHORN_RESOURCES, LONGHORN_RESOURCE_IDS } from "@longhorn/types/resources";
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from "@longhorn/types/resources";
 
 export default class EngineImageModel extends LonghornModel {
   get availableActions() {
@@ -19,7 +19,7 @@ export default class EngineImageModel extends LonghornModel {
   get isDefault() {
     const defaultEngineImageSetting = this.$getters?.["byId"]?.(
       LONGHORN_RESOURCES.SETTINGS,
-      LONGHORN_RESOURCE_IDS.DEFAULT_ENGINE_IMAGE
+      LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE
     );
 
     const defaultEngineImage = defaultEngineImageSetting?.value;

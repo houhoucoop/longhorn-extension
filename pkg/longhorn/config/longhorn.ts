@@ -1,13 +1,21 @@
 import {
   PRODUCT_NAME,
   LONGHORN_PAGES,
+  LONGHORN_GROUP,
 } from "@longhorn/types/longhorn";
 import { LONGHORN_RESOURCES } from "@longhorn/types/resources";
 import { ENGINE_IMAGES_HEADER, NODES_HEADER } from "./table-headers";
 
 export function init($plugin: any, store: any) {
-  const { product, basicType, configureType, virtualType, mapType, headers, weightType } =
-    $plugin.DSL(store, PRODUCT_NAME);
+  const {
+    product,
+    basicType,
+    configureType,
+    virtualType,
+    mapType,
+    headers,
+    weightType,
+  } = $plugin.DSL(store, PRODUCT_NAME);
 
   product({
     ifHaveGroup: "longhorn.io",
@@ -59,16 +67,25 @@ export function init($plugin: any, store: any) {
     },
   });
 
+  // Instance Managers
+  configureType(LONGHORN_RESOURCES.INSTANCE_MANAGER, {
+    isEditable: false,
+    isRemovable: false,
+    canYaml: false,
+  });
+  mapType(LONGHORN_RESOURCES.INSTANCE_MANAGER, LONGHORN_PAGES.INSTANCE_MANAGER);
+  // headers(LONGHORN_RESOURCES.INSTANCE_MANAGER, ENGINE_IMAGES_HEADER);
+
   // registering the defined pages as side-menu entries
   basicType([
     LONGHORN_PAGES.DASHBOARD,
     LONGHORN_RESOURCES.NODES,
-    LONGHORN_RESOURCES.ENGINE_IMAGES,
-    LONGHORN_PAGES.SETTINGS
+    LONGHORN_PAGES.SETTINGS,
   ]);
-
   weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
   weightType(LONGHORN_RESOURCES.NODES, 800, true);
-  weightType(LONGHORN_RESOURCES.ENGINE_IMAGES, 600, true);
-  weightType(LONGHORN_PAGES.SETTINGS, 200, true);
+  basicType(
+    [LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_RESOURCES.INSTANCE_MANAGER],
+    LONGHORN_GROUP.ADVANCED
+  );
 }
