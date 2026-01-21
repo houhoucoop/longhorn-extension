@@ -3,18 +3,15 @@ import { ref, computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import Loading from "@shell/components/Loading";
 import ResourceTable from "@shell/components/ResourceTable";
-import Banner from "@components/Banner/Banner.vue";
 import { allHash } from "@shell/utils/promise";
-import {
-  LONGHORN_RESOURCES,
-  LONGHORN_SETTINGS,
-} from "@longhorn/types/resources";
+import Banner from "@components/Banner/Banner.vue";
+import { LONGHORN_RESOURCES } from "@longhorn/types/resources";
 
 const props = defineProps({
   resource: {
     type: String,
     required: true,
-    default: LONGHORN_RESOURCES.ENGINE_IMAGES,
+    default: LONGHORN_RESOURCES.RECURRING_JOBS,
   },
   schema: {
     type: Object,
@@ -48,13 +45,8 @@ async function fetchData() {
 
   try {
     const hash = {
-      engineImages: store.dispatch(`${inStore.value}/findAll`, {
+      recurringJobs: store.dispatch(`${inStore.value}/findAll`, {
         type: props.resource,
-      }),
-
-      defaultEngineImage: store.dispatch(`${inStore.value}/find`, {
-        type: LONGHORN_RESOURCES.SETTINGS,
-        id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
       }),
     };
 

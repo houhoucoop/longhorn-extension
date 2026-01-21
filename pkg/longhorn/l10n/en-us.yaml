@@ -3,9 +3,12 @@ generic:
   disabled: Disabled
   trueOption: "True"
   falseOption: "False"
+  edit: Edit
 validation:
   field: Field
   duplicate: "{key} must be unique"
+error:
+  fetchError: "Error loading data: {message}"
 longhorn:
   dashboard:
     title: Dashboard
@@ -26,17 +29,18 @@ longhorn:
     unschedulable: Unschedulable
     down: Down
     disabled: Disabled
-    fields:
-      ready: Ready
-      schedulable: Schedulable
-      replicas: Replicas
-      allocated: Allocated
-      used: Used
-      size: Size
-      tags: Tags
-      diskId: Disk ID
-      diskType: Type
-      path: Path
+    table:
+      header:
+        ready: Ready
+        schedulable: Schedulable
+        replicas: Replicas
+        allocated: Allocated
+        used: Used
+        size: Size
+        tags: Tags
+        diskId: Disk ID
+        diskType: Type
+        path: Path
     tab:
       basics: Basics
       disks: Disks
@@ -71,9 +75,40 @@ longhorn:
     reserved: Reserved
     used: Used
     disabled: Disabled
+  recurringJob:
+    tab:
+      basics: Basics
+      labels: "Groups & Labels"
+    table:
+      header:
+        task: Task
+        schedule: Schedule
+        retain: Retain
+        concurrency: Concurrency
+        groups: Groups
+        labels: Labels
+    form:
+      forceCreate: Force Create
+      taskOptions:
+        backup: Backup
+        snapshot: Snapshot
+        snapshotDelete: Snapshot Delete
+        snapshotCleanup: Snapshot Cleanup
+        systemBackup: System Backup
+        filesystemTrim: Filesystem Trim
+      parameters: Parameters
   engineImage:
     title: Engine Image
-    fields:
+    table:
+      header:
+        image: Image
+        status: Status
+        default: Default
+        refCount: Reference Count
+        buildDate: Build Date
+    tab:
+      basics: Basics
+    form:
       image: Image
       status: Status
       default: Default
@@ -82,10 +117,7 @@ longhorn:
       cliAPIVersion: CLI API Version
       controllerAPIVersion: Controller API Version
       noRefSince: No Ref Since
-      nodeDeploymentMap : Node Deployment Map
-    tab:
-      basics: Basics
-    form:
+      nodeDeploymentMap: Node Deployment Map
       validation:
         imageRequired: Image is required.
   settings:

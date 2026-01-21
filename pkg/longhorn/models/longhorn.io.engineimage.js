@@ -16,6 +16,10 @@ export default class EngineImageModel extends LonghornModel {
     return out;
   }
 
+  get image() {
+    return this.spec.image
+  }
+
   get isDefault() {
     const defaultEngineImageSetting = this.$getters?.["byId"]?.(
       LONGHORN_RESOURCES.SETTINGS,

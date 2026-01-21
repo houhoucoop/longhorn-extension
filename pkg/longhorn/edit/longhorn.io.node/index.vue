@@ -270,8 +270,7 @@ export default {
       <NameNsDescription
         :value="value"
         :mode="mode"
-        :namespace-disabled="true"
-        :name-hidden="mode !== _VIEW"
+        :namespaced="false"
         :force-namespace="LONGHORN_NAMESPACE"
       />
 

@@ -84,39 +84,39 @@ export default {
     <Tabbed sideTabs :resource="value">
       <Tab name="basics" labelKey="longhorn.engineImage.tab.basics">
         <LabelValue
-          :name="t('longhorn.engineImage.fields.image')"
+          :name="t('longhorn.engineImage.form.image')"
           :value="displayValue(value?.spec?.image)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.status')"
+          :name="t('longhorn.engineImage.form.status')"
           :value="displayValue(value?.status?.state)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.default')"
+          :name="t('longhorn.engineImage.form.default')"
           :value="displayValue(`${value?.isDefault}`)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.refCount')"
+          :name="t('longhorn.engineImage.form.refCount')"
           :value="displayValue(value?.status?.refCount)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.buildDate')"
+          :name="t('longhorn.engineImage.form.buildDate')"
           :value="displayValue(value?.status?.buildDate)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.cliAPIVersion')"
+          :name="t('longhorn.engineImage.form.cliAPIVersion')"
           :value="displayValue(value?.status?.cliAPIVersion)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.controllerAPIVersion')"
+          :name="t('longhorn.engineImage.form.controllerAPIVersion')"
           :value="displayValue(value?.status?.controllerAPIVersion)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.noRefSince')"
+          :name="t('longhorn.engineImage.form.noRefSince')"
           :value="displayValue(value?.status?.noRefSince)"
         />
         <LabelValue
-          :name="t('longhorn.engineImage.fields.nodeDeploymentMap')"
+          :name="t('longhorn.engineImage.form.nodeDeploymentMap')"
           :value="nodeDeploymentMap"
         />
       </Tab>

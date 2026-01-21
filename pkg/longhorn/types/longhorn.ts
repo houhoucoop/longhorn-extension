@@ -6,6 +6,7 @@ export const LONGHORN_DASHBOARD = "dashboard";
 export const LONGHORN_PAGES = {
   DASHBOARD: "Dashboard",
   NODES: "Nodes",
+  RECURRING_JOBS: "Recurring Jobs",
   ENGINE_IMAGES: "Engine Images",
   SETTINGS: "Settings",
   INSTANCE_MANAGER: "Instance Managers"

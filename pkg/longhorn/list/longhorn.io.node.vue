@@ -4,6 +4,7 @@ import { useStore } from "vuex";
 import Loading from "@shell/components/Loading";
 import ResourceTable from "@shell/components/ResourceTable";
 import SortableTable from "@shell/components/SortableTable";
+import Banner from "@components/Banner/Banner.vue";
 import { allHash } from "@shell/utils/promise";
 import {
   LONGHORN_RESOURCES,
@@ -79,10 +80,14 @@ defineExpose({ loadError, fetchData });
 
 <template>
   <Loading v-if="isLoading" />
-  <div v-else-if="loadError">
-    Error loading data: {{ loadError.message || String(loadError) }}
-  </div>
   <div v-else>
+        <Banner v-if="loadError" color="error">
+      {{
+        t("error.fetchError", {
+          message: loadError.message || String(loadError),
+        })
+      }}
+    </Banner>
     <ResourceTable
       key-field="id"
       :sub-rows="true"

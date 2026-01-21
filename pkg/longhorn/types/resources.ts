@@ -1,8 +1,9 @@
 export const LONGHORN_RESOURCES = {
   NODES: "longhorn.io.node",
-  ENGINE_IMAGES: "longhorn.io.engineimage",
   VOLUMES: "longhorn.io.volume",
+  RECURRING_JOBS: "longhorn.io.recurringjob",
   SETTINGS: "longhorn.io.setting",
+  ENGINE_IMAGES: "longhorn.io.engineimage",
   INSTANCE_MANAGER: "longhorn.io.instancemanager",
 };
 

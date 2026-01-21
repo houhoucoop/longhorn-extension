@@ -103,7 +103,6 @@ export default {
       <NameNsDescription
         :value="value"
         :mode="mode"
-        :namespace-disabled="true"
         :name-hidden="mode !== _VIEW"
         :description-hidden="true"
         :force-namespace="LONGHORN_NAMESPACE"
@@ -111,7 +110,7 @@ export default {
       <Tabbed sideTabs :resource="value">
         <Tab name="basics" labelKey="longhorn.engineImage.tab.basics">
           <LabeledInput
-            labelKey="longhorn.engineImage.fields.image"
+            labelKey="longhorn.engineImage.form.image"
             :mode="mode"
             v-model:value="value.spec.image"
             :rules="fvGetAndReportPathRules('spec.image')"

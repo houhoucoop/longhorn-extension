@@ -4,7 +4,11 @@ import {
   LONGHORN_GROUP,
 } from "@longhorn/types/longhorn";
 import { LONGHORN_RESOURCES } from "@longhorn/types/resources";
-import { ENGINE_IMAGES_HEADER, NODES_HEADER } from "./table-headers";
+import {
+  ENGINE_IMAGES_HEADER,
+  NODES_HEADER,
+  RECURRING_JOBS_HEADER,
+} from "./table-headers";
 
 export function init($plugin: any, store: any) {
   const {
@@ -17,6 +21,7 @@ export function init($plugin: any, store: any) {
     weightType,
   } = $plugin.DSL(store, PRODUCT_NAME);
 
+  // ----- Product Configuration ----- //
   product({
     ifHaveGroup: "longhorn.io",
     removable: true,
@@ -26,6 +31,7 @@ export function init($plugin: any, store: any) {
     inExplorer: false,
   });
 
+  // ----- Pages ----- //
   // Dashboard
   virtualType({
     name: LONGHORN_PAGES.DASHBOARD,
@@ -48,13 +54,13 @@ export function init($plugin: any, store: any) {
   mapType(LONGHORN_RESOURCES.NODES, LONGHORN_PAGES.NODES);
   headers(LONGHORN_RESOURCES.NODES, NODES_HEADER);
 
-  // Engine Images
-  configureType(LONGHORN_RESOURCES.ENGINE_IMAGES, {
-    isEditable: false,
-    canYaml: false,
+  // Recurring Jobs
+  configureType(LONGHORN_RESOURCES.RECURRING_JOBS, {
+    isCreatable: true,
+    isEditable: true,
   });
-  mapType(LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_PAGES.ENGINE_IMAGES);
-  headers(LONGHORN_RESOURCES.ENGINE_IMAGES, ENGINE_IMAGES_HEADER);
+  mapType(LONGHORN_RESOURCES.RECURRING_JOBS, LONGHORN_PAGES.RECURRING_JOBS);
+  headers(LONGHORN_RESOURCES.RECURRING_JOBS, RECURRING_JOBS_HEADER);
 
   // Settings
   virtualType({
@@ -67,6 +73,16 @@ export function init($plugin: any, store: any) {
     },
   });
 
+  // ----- Advanced group pages ----- //
+  // Engine Images
+  configureType(LONGHORN_RESOURCES.ENGINE_IMAGES, {
+    isCreatable: true,
+    isEditable: false,
+    isRemovable: false
+  });
+  mapType(LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_PAGES.ENGINE_IMAGES);
+  headers(LONGHORN_RESOURCES.ENGINE_IMAGES, ENGINE_IMAGES_HEADER);
+
   // Instance Managers
   configureType(LONGHORN_RESOURCES.INSTANCE_MANAGER, {
     isEditable: false,
@@ -74,18 +90,19 @@ export function init($plugin: any, store: any) {
     canYaml: false,
   });
   mapType(LONGHORN_RESOURCES.INSTANCE_MANAGER, LONGHORN_PAGES.INSTANCE_MANAGER);
-  // headers(LONGHORN_RESOURCES.INSTANCE_MANAGER, ENGINE_IMAGES_HEADER);
 
-  // registering the defined pages as side-menu entries
+  // ----- Sidebar configuration ----- //
   basicType([
     LONGHORN_PAGES.DASHBOARD,
     LONGHORN_RESOURCES.NODES,
+    LONGHORN_RESOURCES.RECURRING_JOBS,
     LONGHORN_PAGES.SETTINGS,
   ]);
-  weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
-  weightType(LONGHORN_RESOURCES.NODES, 800, true);
   basicType(
     [LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_RESOURCES.INSTANCE_MANAGER],
     LONGHORN_GROUP.ADVANCED
   );
+  weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
+  weightType(LONGHORN_RESOURCES.NODES, 800, true);
+  weightType(LONGHORN_RESOURCES.RECURRING_JOBS, 700, true);
 }

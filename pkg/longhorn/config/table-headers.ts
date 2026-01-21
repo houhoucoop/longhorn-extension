@@ -1,4 +1,10 @@
-import { STATE, NAME as NAME_COL, AGE } from "@shell/config/table-headers";
+import {
+  STATE,
+  NAME as NAME_COL,
+  AGE,
+  IMAGE_NAME,
+  STATUS,
+} from "@shell/config/table-headers";
 
 export const NODES_HEADER = [
   STATE,
@@ -8,7 +14,7 @@ export const NODES_HEADER = [
   },
   {
     name: "ready",
-    labelKey: "longhorn.node.fields.ready",
+    labelKey: "longhorn.node.table.header.ready",
     search: "$.status.conditions[?(@.type=='Ready')].status",
     sort: ["$.status.conditions[?(@.type=='Ready')].status"],
     value: "$.status.conditions[?(@.type=='Ready')].status",
@@ -17,7 +23,7 @@ export const NODES_HEADER = [
   },
   {
     name: "schedulable",
-    labelKey: "longhorn.node.fields.schedulable",
+    labelKey: "longhorn.node.table.header.schedulable",
     value: "spec.allowScheduling",
     sort: "spec.allowScheduling",
     search: "spec.allowScheduling",
@@ -27,7 +33,7 @@ export const NODES_HEADER = [
   },
   {
     name: "replicas",
-    labelKey: "longhorn.node.fields.replicas",
+    labelKey: "longhorn.node.table.header.replicas",
     value: "replicas",
     formatter: "Link",
     width: 80,
@@ -35,19 +41,19 @@ export const NODES_HEADER = [
   },
   {
     name: "allocated",
-    labelKey: "longhorn.node.fields.allocated",
+    labelKey: "longhorn.node.table.header.allocated",
     value: "disksAllocated",
     formatter: "ConsumptionGauge",
   },
   {
     name: "used",
-    labelKey: "longhorn.node.fields.used",
+    labelKey: "longhorn.node.table.header.used",
     value: "disksUsed",
     formatter: "ConsumptionGauge",
   },
   {
     name: "size",
-    labelKey: "longhorn.node.fields.size",
+    labelKey: "longhorn.node.table.header.size",
     value: "disksSize",
     formatter: "DiskSize",
     width: 200,
@@ -55,7 +61,7 @@ export const NODES_HEADER = [
   },
   {
     name: "tags",
-    labelKey: "longhorn.node.fields.tags",
+    labelKey: "longhorn.node.table.header.tags",
     value: "spec.tags",
     formatter: "Tag",
   },
@@ -65,7 +71,7 @@ export const NODES_HEADER = [
 export const DISKS_HEADERS = [
   {
     name: "schedulable",
-    labelKey: "longhorn.node.fields.schedulable",
+    labelKey: "longhorn.node.table.header.schedulable",
     value: "allowScheduling",
     sort: "allowScheduling",
     search: "allowScheduling",
@@ -75,27 +81,27 @@ export const DISKS_HEADERS = [
   },
   {
     name: "id",
-    labelKey: "longhorn.node.fields.diskId",
+    labelKey: "longhorn.node.table.header.diskId",
     value: "id",
     sort: ["id"],
     width: 200,
   },
   {
     name: "diskType",
-    labelKey: "longhorn.node.fields.diskType",
+    labelKey: "longhorn.node.table.header.diskType",
     value: "diskType",
     width: 100,
   },
   {
     name: "path",
-    labelKey: "longhorn.node.fields.path",
+    labelKey: "longhorn.node.table.header.path",
     value: "path",
     sort: ["path"],
     width: 100,
   },
   {
     name: "replicas",
-    labelKey: "longhorn.node.fields.replicas",
+    labelKey: "longhorn.node.table.header.replicas",
     value: "scheduledReplicaCounts",
     formatter: "Link",
     width: 80,
@@ -103,19 +109,19 @@ export const DISKS_HEADERS = [
   },
   {
     name: "allocated",
-    labelKey: "longhorn.node.fields.allocated",
+    labelKey: "longhorn.node.table.header.allocated",
     value: "diskAllocated",
     formatter: "ConsumptionGauge",
   },
   {
     name: "used",
-    labelKey: "longhorn.node.fields.used",
+    labelKey: "longhorn.node.table.header.used",
     value: "diskUsed",
     formatter: "ConsumptionGauge",
   },
   {
     name: "size",
-    labelKey: "longhorn.node.fields.size",
+    labelKey: "longhorn.node.table.header.size",
     value: "diskSize",
     formatter: "DiskSize",
     width: 200,
@@ -123,38 +129,84 @@ export const DISKS_HEADERS = [
   },
 ];
 
-export const ENGINE_IMAGES_HEADER = [
+export const RECURRING_JOBS_HEADER = [
   STATE,
   NAME_COL,
   {
-    name: "image",
-    labelKey: "longhorn.engineImage.fields.image",
-    value: "spec.image",
-    sort: "spec.image",
+    name: "task",
+    labelKey: "longhorn.recurringJob.table.header.task",
+    value: "$.spec.task",
+    sort: ["$.spec.task"],
+    search: "$.spec.task",
   },
   {
+    name: "cron",
+    labelKey: "longhorn.recurringJob.table.header.schedule",
+    value: "$.spec.cron",
+    sort: ["$.spec.cron"],
+    search: "$.spec.cron",
+  },
+  {
+    name: "retain",
+    labelKey: "longhorn.recurringJob.table.header.retain",
+    value: "$.spec.retain",
+    sort: ["$.spec.retain"],
+    search: "$.spec.retain",
+  },
+  {
+    name: "concurrency",
+    labelKey: "longhorn.recurringJob.table.header.concurrency",
+    value: "$.spec.concurrency",
+    sort: ["$.spec.concurrency"],
+    search: "$.spec.concurrency",
+  },
+  {
+    name: "groups",
+    labelKey: "longhorn.recurringJob.table.header.groups",
+    value: "$.spec.groups",
+    sort: ["$.spec.groups"],
+    search: "$.spec.groups",
+  },
+  {
+    name: "labels",
+    labelKey: "longhorn.recurringJob.table.header.labels",
+    value: "$.spec.labels",
+    sort: ["$.spec.labels"],
+    search: "$.spec.labels",
+    formatter: "KeyValue",
+  },
+  AGE,
+];
+
+export const ENGINE_IMAGES_HEADER = [
+  STATE,
+  NAME_COL,
+  IMAGE_NAME,
+  {
     name: "status",
-    labelKey: "longhorn.engineImage.fields.status",
-    value: "status.state",
-    sort: "status.state",
+    labelKey: "longhorn.engineImage.table.header.status",
+    value: "$.status.state",
+    sort: ["$.status.state"],
+    search: "$.status.state",
   },
   {
     name: "default",
-    labelKey: "longhorn.engineImage.fields.default",
+    labelKey: "longhorn.engineImage.table.header.default",
     value: "isDefault",
     formatter: "Checked",
     align: "center",
   },
   {
     name: "refCount",
-    labelKey: "longhorn.engineImage.fields.refCount",
-    value: "status.refCount",
+    labelKey: "longhorn.engineImage.table.header.refCount",
+    value: "$.status.refCount",
+    sort: ["$.status.refCount"],
+    search: "$.status.refCount",
     align: "center",
-    sort: "status.refCount",
   },
   {
     name: "buildDate",
-    labelKey: "longhorn.engineImage.fields.buildDate",
+    labelKey: "longhorn.engineImage.table.header.buildDate",
     value: "status.buildDate",
     formatterOpts: { addSuffix: true },
     formatter: "LiveDate",
