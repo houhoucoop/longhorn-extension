@@ -10,6 +10,7 @@ export const LONGHORN_PAGES = {
   BACKUP_TARGETS: "Backup Targets",
   BACKUP_VOLUMES: "Backup Volumes",
   SYSTEM_BACKUPS: "System Backups",
+  SYSTEM_RESTORE: "System Restore",
   ENGINE_IMAGES: "Engine Images",
   SETTINGS: "Settings",
   INSTANCE_MANAGERS: "Instance Managers",

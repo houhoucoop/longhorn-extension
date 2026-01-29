@@ -5,6 +5,7 @@ export const LONGHORN_RESOURCES = {
   BACKUP_TARGETS: "longhorn.io.backuptarget",
   BACKUP_VOLUMES: "longhorn.io.backupvolume",
   SYSTEM_BACKUPS: "longhorn.io.systembackup",
+  SYSTEM_RESTORE: "longhorn.io.systemrestore",
   SETTINGS: "longhorn.io.setting",
   ENGINE_IMAGES: "longhorn.io.engineimage",
   INSTANCE_MANAGERS: "longhorn.io.instancemanager",

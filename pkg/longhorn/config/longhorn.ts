@@ -9,7 +9,8 @@ import {
   NODES_HEADER,
   RECURRING_JOBS_HEADER,
   BACKUP_TARGETS_HEADER,
-  SYSTEM_BACKUPS_HEADER
+  SYSTEM_BACKUPS_HEADER,
+  SYSTEM_RESTORE_HEADER
 } from "./table-headers";
 
 export function init($plugin: any, store: any) {
@@ -76,18 +77,29 @@ export function init($plugin: any, store: any) {
   });
 
   // ----- Backup and Restore group pages ----- //
+  // Backup Targets
   configureType(LONGHORN_RESOURCES.BACKUP_TARGETS);
   mapType(LONGHORN_RESOURCES.BACKUP_TARGETS, LONGHORN_PAGES.BACKUP_TARGETS);
   headers(LONGHORN_RESOURCES.BACKUP_TARGETS, BACKUP_TARGETS_HEADER);
 
+  // Backup Volumes
   configureType(LONGHORN_RESOURCES.BACKUP_VOLUMES);
   mapType(LONGHORN_RESOURCES.BACKUP_VOLUMES, LONGHORN_PAGES.BACKUP_VOLUMES);
 
+  // System Backups
   configureType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, {
     canYaml: false,
   });
   mapType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, LONGHORN_PAGES.SYSTEM_BACKUPS);
   headers(LONGHORN_RESOURCES.SYSTEM_BACKUPS, SYSTEM_BACKUPS_HEADER);
+
+  // System Restore
+  configureType(LONGHORN_RESOURCES.SYSTEM_RESTORE, {
+    isEditable: false,
+    canYaml: false,
+  });
+  mapType(LONGHORN_RESOURCES.SYSTEM_RESTORE, LONGHORN_PAGES.SYSTEM_RESTORE);
+  headers(LONGHORN_RESOURCES.SYSTEM_RESTORE, SYSTEM_RESTORE_HEADER);
 
   // ----- Advanced group pages ----- //
   // Engine Images
@@ -120,6 +132,7 @@ export function init($plugin: any, store: any) {
       // LONGHORN_RESOURCES.BACKUP_VOLUMES,
       LONGHORN_RESOURCES.BACKUP_TARGETS,
       LONGHORN_RESOURCES.SYSTEM_BACKUPS,
+      LONGHORN_RESOURCES.SYSTEM_RESTORE
     ],
     LONGHORN_GROUP.BACKUP_AND_RESTORE,
   );

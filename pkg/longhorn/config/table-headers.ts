@@ -3,7 +3,6 @@ import {
   NAME as NAME_COL,
   AGE,
   IMAGE_NAME,
-  STATUS,
 } from "@shell/config/table-headers";
 
 export const NODES_HEADER = [
@@ -244,6 +243,27 @@ export const SYSTEM_BACKUPS_HEADER = [
     sort: ["$.status.lastSyncedAt"],
     search: "$.status.lastSyncedAt",
   },
+  AGE
+];
+
+export const SYSTEM_RESTORE_HEADER = [
+  STATE,
+  NAME_COL,
+  {
+    name: "version",
+    label: "Version",
+    value: "version",
+    sort: ["version"],
+    search: "version",
+  },
+  {
+    name: "state",
+    label: "State",
+    value: "$.status.state",
+    sort: ["$.status.state"],
+    search: "$.status.state",
+  },
+  AGE
 ];
 
 export const ENGINE_IMAGES_HEADER = [
