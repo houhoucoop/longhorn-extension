@@ -178,6 +178,74 @@ export const RECURRING_JOBS_HEADER = [
   AGE,
 ];
 
+export const BACKUP_TARGETS_HEADER = [
+  STATE,
+  NAME_COL,
+  {
+    name: "backupTargetURL",
+    labelKey: "longhorn.backupTarget.table.header.backupTargetURL",
+    value: "$.spec.backupTargetURL",
+    sort: ["$.spec.backupTargetURL"],
+    search: "$.spec.backupTargetURL",
+  },
+  {
+    name: "credentialSecret",
+    labelKey: "longhorn.backupTarget.table.header.credentialSecret",
+    value: "$.spec.credentialSecret",
+    sort: ["$.spec.credentialSecret"],
+    search: "$.spec.credentialSecret",
+  },
+  {
+    name: "pollInterval",
+    labelKey: "longhorn.backupTarget.table.header.pollInterval",
+    value: "$.spec.pollInterval",
+    sort: ["$.spec.pollInterval"],
+    search: "$.spec.pollInterval",
+  },
+
+  {
+    name: "available",
+    labelKey: "longhorn.backupTarget.table.header.available",
+    value: "$.status.available",
+    sort: ["$.status.available"],
+    search: "$.status.available",
+  },
+  {
+    name: "lastSyncedAt",
+    labelKey: "longhorn.backupTarget.table.header.lastSyncedAt",
+    value: "$.status.lastSyncedAt",
+    sort: ["$.status.lastSyncedAt"],
+    search: "$.status.lastSyncedAt",
+  },
+];
+
+export const SYSTEM_BACKUPS_HEADER = [
+  STATE,
+  NAME_COL,
+  {
+    name: "version",
+    label: "Version",
+    value: "$.status.version",
+    sort: ["$.status.version"],
+    search: "$.status.version",
+  },
+  {
+    name: "state",
+    label: "State",
+    value: "$.status.state",
+    sort: ["$.status.state"],
+    search: "$.status.state",
+  },
+
+  {
+    name: "lastSyncedAt",
+    label: "LastSyncedAt",
+    value: "$.status.lastSyncedAt",
+    sort: ["$.status.lastSyncedAt"],
+    search: "$.status.lastSyncedAt",
+  },
+];
+
 export const ENGINE_IMAGES_HEADER = [
   STATE,
   NAME_COL,

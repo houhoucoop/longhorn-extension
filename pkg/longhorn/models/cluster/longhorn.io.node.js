@@ -3,15 +3,16 @@ import {
   LONGHORN_RESOURCES,
   LONGHORN_SETTINGS,
 } from "@longhorn/types/resources";
+import { AVAILABLE_ACTIONS } from "@longhorn/types/longhorn";
 
 export default class NodeModel extends LonghornModel {
   get _availableActions() {
     const out = super._availableActions || [];
 
     out.forEach((a) => {
-      if (a.action === "goToEdit") {
+      if (a.action === AVAILABLE_ACTIONS.EDIT) {
         a.enabled = !this.isDown;
-      } else if (a.action === "promptRemove") {
+      } else if (a.action === AVAILABLE_ACTIONS.DELETE) {
         a.enabled = this.isDown;
       }
     });

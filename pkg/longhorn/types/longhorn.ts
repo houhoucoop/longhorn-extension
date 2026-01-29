@@ -7,19 +7,24 @@ export const LONGHORN_PAGES = {
   DASHBOARD: "Dashboard",
   NODES: "Nodes",
   RECURRING_JOBS: "Recurring Jobs",
+  BACKUP_TARGETS: "Backup Targets",
+  BACKUP_VOLUMES: "Backup Volumes",
+  SYSTEM_BACKUPS: "System Backups",
   ENGINE_IMAGES: "Engine Images",
   SETTINGS: "Settings",
-  INSTANCE_MANAGER: "Instance Managers"
+  INSTANCE_MANAGERS: "Instance Managers",
 };
 
 export const LONGHORN_GROUP = {
-  ADVANCED: "Advanced"
-}
+  ADVANCED: "Advanced",
+  BACKUP_AND_RESTORE: "Backup and Restore",
+};
 
 export const AVAILABLE_ACTIONS = {
   EDIT: "goToEdit",
   EDIT_YAML: "goToEditYaml",
   CLONE: "goToClone",
+  CLONE_YAML: "cloneYaml",
   DELETE: "promptRemove",
 };
 

@@ -97,6 +97,19 @@ longhorn:
         systemBackup: System Backup
         filesystemTrim: Filesystem Trim
       parameters: Parameters
+  backupTarget:
+    tab:
+      basics: Basics
+    table:
+      header:
+        backupTargetURL: URL
+        credentialSecret: Credential Secret
+        pollInterval: Poll Interval
+        available: Available
+        lastSyncedAt: Last Synced At
+    form:
+      pollInterval:
+        tooltip:  Set 0 to disable the polling
   engineImage:
     title: Engine Image
     table:
