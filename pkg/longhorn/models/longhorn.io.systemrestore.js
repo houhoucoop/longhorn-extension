@@ -1,6 +1,6 @@
-import LonghornModel from "./longhorn";
-import { AVAILABLE_ACTIONS } from "@longhorn/types/longhorn";
-import { LONGHORN_RESOURCES } from "@longhorn/types/resources";
+import LonghornModel from './longhorn';
+import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
+import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 
 export default class SystemRestoreModel extends LonghornModel {
   get availableActions() {
@@ -13,14 +13,11 @@ export default class SystemRestoreModel extends LonghornModel {
   get version() {
     const backupName = this.spec?.systemBackup;
 
-    if (!backupName) return "";
+    if (!backupName) return '';
 
-    const systemBackups =
-      this.$getters?.["all"]?.(LONGHORN_RESOURCES.SYSTEM_BACKUPS) || [];
-    const matchingBackup = systemBackups.find(
-      (backup) => backup.metadata?.name === backupName,
-    );
+    const systemBackups = this.$getters?.['all']?.(LONGHORN_RESOURCES.SYSTEM_BACKUPS) || [];
+    const matchingBackup = systemBackups.find((backup) => backup.metadata?.name === backupName);
 
-    return matchingBackup?.status?.version || "";
+    return matchingBackup?.status?.version || '';
   }
 }

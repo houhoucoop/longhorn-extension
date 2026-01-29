@@ -1,5 +1,5 @@
-import { PRODUCT_NAME } from '@longhorn/types/longhorn'
-import { LONGHORN_RESOURCES } from "@longhorn/types/resources";
+import { PRODUCT_NAME } from '@longhorn/types/longhorn';
+import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import Dashboard from '@longhorn/pages/c/_cluster/index.vue';
 import Settings from '@longhorn/pages/c/_cluster/_resource/settings.vue';
 import ListLonghornResource from '@longhorn/pages/c/_cluster/_resource/index.vue';
@@ -9,42 +9,42 @@ import ViewLonghornNamespacedResource from '@longhorn/pages/c/_cluster/_resource
 
 const routes = [
   {
-    name:       `c-cluster-${ PRODUCT_NAME }`,
-    path:       `/c/:cluster/${ PRODUCT_NAME }`,
-    component:  Dashboard,
-    meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
+    name: `c-cluster-${PRODUCT_NAME}`,
+    path: `/c/:cluster/${PRODUCT_NAME}`,
+    component: Dashboard,
+    meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
   },
   {
-    name:       `c-cluster-${ PRODUCT_NAME }-${ LONGHORN_RESOURCES.SETTINGS }`,
-    path:       `/c/:cluster/${ PRODUCT_NAME }/${ LONGHORN_RESOURCES.SETTINGS }`,
-    component:  Settings,
-    meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
+    name: `c-cluster-${PRODUCT_NAME}-${LONGHORN_RESOURCES.SETTINGS}`,
+    path: `/c/:cluster/${PRODUCT_NAME}/${LONGHORN_RESOURCES.SETTINGS}`,
+    component: Settings,
+    meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
   },
   // registering routes for list/edit/create views
   {
-    name:      `c-cluster-${ PRODUCT_NAME }-resource`,
-    path:      `/c/:cluster/${ PRODUCT_NAME }/:resource`,
+    name: `c-cluster-${PRODUCT_NAME}-resource`,
+    path: `/c/:cluster/${PRODUCT_NAME}/:resource`,
     component: ListLonghornResource,
-    meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
+    meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
   },
   {
-    name:      `c-cluster-${ PRODUCT_NAME }-resource-create`,
-    path:      `/c/:cluster/${ PRODUCT_NAME }/:resource/create`,
+    name: `c-cluster-${PRODUCT_NAME}-resource-create`,
+    path: `/c/:cluster/${PRODUCT_NAME}/:resource/create`,
     component: CreateLonghornResource,
-    meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
+    meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
   },
   {
-    name:      `c-cluster-${ PRODUCT_NAME }-resource-id`,
-    path:      `/c/:cluster/${ PRODUCT_NAME }/:resource/:id`,
+    name: `c-cluster-${PRODUCT_NAME}-resource-id`,
+    path: `/c/:cluster/${PRODUCT_NAME}/:resource/:id`,
     component: ViewLonghornResourced,
-    meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
+    meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
   },
   {
-    name:      `c-cluster-${ PRODUCT_NAME }-resource-namespace-id`,
-    path:      `/:cluster/${ PRODUCT_NAME }/:resource/:namespace/:id`,
+    name: `c-cluster-${PRODUCT_NAME}-resource-namespace-id`,
+    path: `/:cluster/${PRODUCT_NAME}/:resource/:namespace/:id`,
     component: ViewLonghornNamespacedResource,
-    meta:       { product: PRODUCT_NAME, pkg: PRODUCT_NAME }
-  }
+    meta: { product: PRODUCT_NAME, pkg: PRODUCT_NAME },
+  },
 ];
 
 export default routes;

@@ -1,8 +1,8 @@
-import { ref, readonly } from "vue";
+import { ref, readonly } from 'vue';
 
 const tooltipState = ref({
   visible: false,
-  content: "",
+  content: '',
   reference: null,
 });
 
@@ -29,7 +29,7 @@ export function formatTooltipContent(options) {
   let percentDisplay;
 
   if (value === 0) {
-    percentDisplay = "0%";
+    percentDisplay = '0%';
   } else {
     const isInteger = Math.abs(percentRaw - Math.round(percentRaw)) < 0.00001;
 
@@ -46,14 +46,13 @@ export function formatTooltipContent(options) {
 export function useTooltip() {
   const showTooltip = (content, refOrEvent) => {
     let reference;
+
     if (refOrEvent instanceof MouseEvent) {
       reference = _createVirtualElementFromEvent(refOrEvent);
     } else if (refOrEvent instanceof HTMLElement) {
       reference = refOrEvent;
     } else {
-      throw new TypeError(
-        "Failed to show tooltip: reference must be an HTMLElement or MouseEvent."
-      );
+      throw new TypeError('Failed to show tooltip: reference must be an HTMLElement or MouseEvent.');
     }
 
     tooltipState.value = {

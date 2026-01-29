@@ -1,16 +1,16 @@
 <script>
-import { _VIEW } from "@shell/config/query-params";
-import UnitInput from "@shell/components/form/UnitInput.vue";
-import ArrayList from "@shell/components/form/ArrayList";
-import LabelValue from "@shell/components/LabelValue";
-import ArrayListGrouped from "@shell/components/form/ArrayListGrouped";
-import { LabeledInput } from "@components/Form/LabeledInput";
-import LabeledSelect from "@shell/components/form/LabeledSelect";
-import Banner from "@components/Banner/Banner.vue";
-import { RadioGroup } from "@components/Form/Radio";
-import { BadgeState } from "@components/BadgeState";
-import { bytesToGi } from "@longhorn/utils/formatter";
-import { GiB_UNIT } from "@longhorn/types/units";
+import { _VIEW } from '@shell/config/query-params';
+import UnitInput from '@shell/components/form/UnitInput.vue';
+import ArrayList from '@shell/components/form/ArrayList';
+import LabelValue from '@shell/components/LabelValue';
+import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import Banner from '@components/Banner/Banner.vue';
+import { RadioGroup } from '@components/Form/Radio';
+import { BadgeState } from '@components/BadgeState';
+import { bytesToGi } from '@longhorn/utils/formatter';
+import { GiB_UNIT } from '@longhorn/types/units';
 
 export default {
   components: {
@@ -36,20 +36,20 @@ export default {
   computed: {
     diskTypeOptions() {
       return [
-        { label: this.t("longhorn.node.form.fileSystem"), value: "filesystem" },
-        { label: this.t("longhorn.node.form.block"), value: "block" },
+        { label: this.t('longhorn.node.form.fileSystem'), value: 'filesystem' },
+        { label: this.t('longhorn.node.form.block'), value: 'block' },
       ];
     },
     nodeSchedulingOptions() {
       return [
-        { label: this.t("generic.enabled"), value: true },
-        { label: this.t("generic.disabled"), value: false },
+        { label: this.t('generic.enabled'), value: true },
+        { label: this.t('generic.disabled'), value: false },
       ];
     },
     evictionRequestedOptions() {
       return [
-        { label: this.t("generic.trueOption"), value: true },
-        { label: this.t("generic.falseOption"), value: false },
+        { label: this.t('generic.trueOption'), value: true },
+        { label: this.t('generic.falseOption'), value: false },
       ];
     },
   },
@@ -85,10 +85,10 @@ export default {
             <BadgeState
               v-for="condition in conditions[disk.id]"
               :key="condition.key"
+              v-clean-tooltip="condition.tooltip"
               class="mr-10 mb-10"
               :value="condition.value"
               :icon="condition.icon"
-              v-clean-tooltip="condition.tooltip"
             />
           </div>
 
@@ -136,31 +136,19 @@ export default {
             <div class="col span-4">
               <LabelValue
                 :name="t('longhorn.node.form.storageAvailable')"
-                :value="
-                  disk.isNew
-                    ? `0 ${GiB_UNIT}`
-                    : `${bytesToGi(disk.storageAvailable || 0)} ${GiB_UNIT}`
-                "
+                :value="disk.isNew ? `0 ${GiB_UNIT}` : `${bytesToGi(disk.storageAvailable || 0)} ${GiB_UNIT}`"
               />
             </div>
             <div class="col span-4">
               <LabelValue
                 :name="t('longhorn.node.form.storageScheduled')"
-                :value="
-                  disk.isNew
-                    ? `0 ${GiB_UNIT}`
-                    : `${bytesToGi(disk.storageScheduled || 0)} ${GiB_UNIT}`
-                "
+                :value="disk.isNew ? `0 ${GiB_UNIT}` : `${bytesToGi(disk.storageScheduled || 0)} ${GiB_UNIT}`"
               />
             </div>
             <div class="col span-4">
               <LabelValue
                 :name="t('longhorn.node.form.storageMaximum')"
-                :value="
-                  disk.isNew
-                    ? `0 ${GiB_UNIT}`
-                    : `${bytesToGi(disk.storageMaximum || 0)} ${GiB_UNIT}`
-                "
+                :value="disk.isNew ? `0 ${GiB_UNIT}` : `${bytesToGi(disk.storageMaximum || 0)} ${GiB_UNIT}`"
               />
             </div>
           </div>
@@ -192,7 +180,7 @@ export default {
                 :add-label="t('longhorn.node.form.addTags')"
               >
                 <template #title>
-                  <h4>{{ t("longhorn.node.form.tags") }}</h4>
+                  <h4>{{ t('longhorn.node.form.tags') }}</h4>
                 </template>
               </ArrayList>
             </div>

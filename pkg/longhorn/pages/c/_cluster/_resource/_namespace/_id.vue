@@ -2,8 +2,8 @@
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 
 export default {
-  name:        'LonghornResourcedNamespaceId',
-  components:  { ResourceDetail },
+  name: 'LonghornResourcedNamespaceId',
+  components: { ResourceDetail },
 };
 </script>
 

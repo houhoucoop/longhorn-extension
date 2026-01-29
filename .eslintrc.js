@@ -1,12 +1,12 @@
 module.exports = {
   root: true,
-  env:  {
+  env: {
     browser: true,
-    node:    true
+    node: true,
   },
   globals: {
     NodeJS: true,
-    Timer:  true
+    Timer: true,
   },
   extends: [
     'standard',
@@ -15,229 +15,177 @@ module.exports = {
     '@vue/standard',
     '@vue/typescript/recommended',
     'plugin:vue/vue3-recommended',
-    'plugin:cypress/recommended'
+    'plugin:cypress/recommended',
+    'plugin:prettier/recommended',
   ],
   rules: {
-    'dot-notation':             'off',
-    'generator-star-spacing':   'off',
-    'guard-for-in':             'off',
-    'linebreak-style':          'off',
-    'new-cap':                  'off',
-    'no-empty':                 'off',
-    'no-extra-boolean-cast':    'off',
-    'no-new':                   'off',
-    'no-plusplus':              'off',
-    'no-useless-escape':        'off',
-    'semi-spacing':             'off',
-    'space-in-parens':          'off',
-    strict:                     'off',
-    'unicorn/no-new-buffer':    'off',
-    'vue/html-self-closing':    'off',
+    // Disable multi-word component name rule for this project
+    'vue/multi-word-component-names': 'off',
+    // Disable reserved keys rule - allow _VIEW, _CREATE etc. as they're used by Rancher framework
+    'vue/no-reserved-keys': 'off',
+    // Disable reserved component names rule - needed for framework components
+    'vue/no-reserved-component-names': 'off',
+    // Allow v-html as it's needed for dynamic tooltip content
+    'vue/no-v-html': 'off',
+    // Allow camelCase naming for constants like GiB_UNIT
+    camelcase: 'off',
+    // Allow require statements in TypeScript files for dynamic imports
+    '@typescript-eslint/no-var-requires': 'off',
+    // Allow explicit any type when needed for flexibility
+    '@typescript-eslint/no-explicit-any': 'off',
+    // Prettier handles these, turn off conflicting ESLint rules
+    'arrow-parens': 'off',
+    indent: 'off',
+    'comma-dangle': 'off',
+    semi: 'off',
+    quotes: 'off',
+    'space-before-function-paren': 'off',
+    'object-curly-spacing': 'off',
+    'array-bracket-spacing': 'off',
+    'arrow-spacing': 'off',
+    'block-spacing': 'off',
+    'brace-style': 'off',
+    'comma-spacing': 'off',
+    'func-call-spacing': 'off',
+    'key-spacing': 'off',
+    'keyword-spacing': 'off',
+    'no-trailing-spaces': 'off',
+    'object-property-newline': 'off',
+    'padded-blocks': 'off',
+    'object-curly-newline': 'off',
+    'vue/object-curly-newline': 'off',
+    '@typescript-eslint/object-curly-newline': 'off',
+    'rest-spread-spacing': 'off',
+    'space-infix-ops': 'off',
+    'spaced-comment': 'off',
+    'switch-colon-spacing': 'off',
+    'template-curly-spacing': 'off',
+    'yield-star-spacing': 'off',
+    'implicit-arrow-linebreak': 'off',
+    'multiline-ternary': 'off',
+    'newline-per-chained-call': 'off',
+    'no-whitespace-before-property': 'off',
+
+    // Keep these ESLint rules active (non-formatting)
+    'dot-notation': 'off',
+    'generator-star-spacing': 'off',
+    'guard-for-in': 'off',
+    'linebreak-style': 'off',
+    'new-cap': 'off',
+    'no-empty': 'off',
+    'no-extra-boolean-cast': 'off',
+    'no-new': 'off',
+    'no-plusplus': 'off',
+    'no-useless-escape': 'off',
+    'semi-spacing': 'off',
+    'space-in-parens': 'off',
+    strict: 'off',
+    'unicorn/no-new-buffer': 'off',
+    'vue/html-self-closing': 'off',
     'vue/no-unused-components': 'warn',
-    'vue/no-v-html':            'error',
-    'wrap-iife':                'off',
-    'array-bracket-spacing':    'warn',
-    'arrow-parens':             'warn',
-    'arrow-spacing':            [
-      'warn',
-      {
-        before: true,
-        after:  true
-      }
-    ],
-    'block-spacing': [
-      'warn',
-      'always'
-    ],
-    'brace-style': [
-      'warn',
-      '1tbs'
-    ],
-    'comma-dangle': [
-      'warn',
-      'only-multiline'
-    ],
-    'comma-spacing':     'warn',
-    curly:               'warn',
-    eqeqeq:              'warn',
-    'func-call-spacing': [
-      'warn',
-      'never'
-    ],
-    'implicit-arrow-linebreak': 'warn',
-    indent:                     [
-      'warn',
-      2
-    ],
-    'keyword-spacing':             'warn',
-    'lines-between-class-members': [
-      'warn',
-      'always',
-      { exceptAfterSingleLine: true }
-    ],
-    'multiline-ternary': [
-      'warn',
-      'never'
-    ],
-    'newline-per-chained-call': [
-      'warn',
-      { ignoreChainWithDepth: 4 }
-    ],
-    'no-caller':      'warn',
-    'no-cond-assign': [
-      'warn',
-      'except-parens'
-    ],
-    'no-console':                    'warn',
-    'no-debugger':                   'warn',
-    'no-eq-null':                    'warn',
-    'no-eval':                       'warn',
-    'no-trailing-spaces':            'warn',
-    'no-undef':                      'warn',
-    'no-unused-vars':                'warn',
-    'no-whitespace-before-property': 'warn',
-    'object-curly-spacing':          [
-      'warn',
-      'always'
-    ],
-    'object-property-newline': 'warn',
-    'object-shorthand':        'warn',
-    'padded-blocks':           [
-      'warn',
-      'never'
-    ],
+    'vue/no-v-html': 'error',
+    'wrap-iife': 'off',
+    curly: 'warn',
+    eqeqeq: 'warn',
+    'lines-between-class-members': ['warn', 'always', { exceptAfterSingleLine: true }],
+    'no-caller': 'warn',
+    'no-cond-assign': ['warn', 'except-parens'],
+    'no-console': 'warn',
+    'no-debugger': 'warn',
+    'no-eq-null': 'warn',
+    'no-eval': 'warn',
+    'no-undef': 'warn',
+    'no-unused-vars': 'warn',
+    'object-shorthand': 'warn',
     'prefer-arrow-callback': 'warn',
-    'prefer-template':       'warn',
-    'quote-props':           'warn',
-    'rest-spread-spacing':   'warn',
-    semi:                    [
-      'warn',
-      'always'
-    ],
-    'space-before-function-paren': [
-      'warn',
-      'never'
-    ],
-    'space-infix-ops':        'warn',
-    'spaced-comment':         'warn',
-    'switch-colon-spacing':   'warn',
-    'template-curly-spacing': [
-      'warn',
-      'always'
-    ],
-    'yield-star-spacing': [
-      'warn',
-      'both'
-    ],
-    'key-spacing': [
-      'warn',
-      {
-        align: {
-          beforeColon: false,
-          afterColon:  true,
-          on:          'value',
-          mode:        'minimum'
-        },
-        multiLine: {
-          beforeColon: false,
-          afterColon:  true
-        }
-      }
-    ],
+    'prefer-template': 'warn',
+    'quote-props': 'warn',
     'object-curly-newline': [
       'warn',
       {
         ObjectExpression: {
-          multiline:     true,
-          minProperties: 3
+          multiline: true,
+          minProperties: 3,
         },
         ObjectPattern: {
-          multiline:     true,
-          minProperties: 4
+          multiline: true,
+          minProperties: 4,
         },
         ImportDeclaration: {
-          multiline:     true,
-          minProperties: 5
+          multiline: true,
+          minProperties: 5,
         },
         ExportDeclaration: {
-          multiline:     true,
-          minProperties: 3
-        }
-      }
+          multiline: true,
+          minProperties: 3,
+        },
+      },
     ],
     'padding-line-between-statements': [
       'warn',
       {
         blankLine: 'always',
-        prev:      '*',
-        next:      'return'
+        prev: '*',
+        next: 'return',
       },
       {
         blankLine: 'always',
-        prev:      'function',
-        next:      'function'
+        prev: 'function',
+        next: 'function',
       },
       {
         blankLine: 'always',
-        prev:      [
-          'const',
-          'let',
-          'var'
-        ],
-        next: '*'
+        prev: ['const', 'let', 'var'],
+        next: '*',
       },
       {
         blankLine: 'any',
-        prev:      [
-          'const',
-          'let',
-          'var'
-        ],
-        next: [
-          'const',
-          'let',
-          'var'
-        ]
-      }
+        prev: ['const', 'let', 'var'],
+        next: ['const', 'let', 'var'],
+      },
     ],
     quotes: [
       'warn',
       'single',
       {
-        avoidEscape:           true,
-        allowTemplateLiterals: true
-      }
+        avoidEscape: true,
+        allowTemplateLiterals: true,
+      },
     ],
     'space-unary-ops': [
       'warn',
       {
-        words:    true,
-        nonwords: false
-      }
+        words: true,
+        nonwords: false,
+      },
     ],
-    'vue/order-in-components':           'off',
-    'vue/no-lone-template':              'off',
-    'vue/v-slot-style':                  'off',
-    'vue/component-tags-order':          'off',
-    'vue/no-mutating-props':             'off',
+    'vue/order-in-components': 'off',
+    'vue/no-lone-template': 'off',
+    'vue/v-slot-style': 'off',
+    'vue/component-tags-order': 'off',
+    'vue/no-mutating-props': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
-    'array-callback-return':             'off',
-    'vue/one-component-per-file':        'off',
-    'vue/no-deprecated-slot-attribute':  'off',
-    'vue/require-explicit-emits':        'off',
-    'vue/v-on-event-hyphenation':        'off'
+    'array-callback-return': 'off',
+    'vue/one-component-per-file': 'off',
+    'vue/no-deprecated-slot-attribute': 'off',
+    'vue/require-explicit-emits': 'off',
+    'vue/v-on-event-hyphenation': 'off',
   },
   overrides: [
     {
-      files: [
-        '*.js'
-      ],
+      files: ['*.js', '*.ts', '*.vue'],
       rules: {
-        'prefer-regex-literals':                'off',
+        'object-curly-newline': 'off',
+      },
+    },
+    {
+      files: ['*.js'],
+      rules: {
+        'prefer-regex-literals': 'off',
         'vue/component-definition-name-casing': 'off',
-        'no-unreachable-loop':                  'off',
-        'computed-property-spacing':            'off'
-      }
-    }
-  ]
+        'no-unreachable-loop': 'off',
+        'computed-property-spacing': 'off',
+      },
+    },
+  ],
 };

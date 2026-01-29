@@ -1,18 +1,18 @@
 <script>
-import Loading from "@shell/components/Loading";
-import CruResource from "@shell/components/CruResource";
-import NameNsDescription from "@shell/components/form/NameNsDescription";
-import { LabeledInput } from "@components/Form/LabeledInput";
-import Tabbed from "@shell/components/Tabbed";
-import Tab from "@shell/components/Tabbed/Tab";
-import CreateEditView from "@shell/mixins/create-edit-view";
-import FormValidation from "@shell/mixins/form-validation";
-import { _CREATE, _VIEW } from "@shell/config/query-params";
-import { exceptionToErrorsArray } from "@shell/utils/error";
-import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
+import Loading from '@shell/components/Loading';
+import CruResource from '@shell/components/CruResource';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import Tabbed from '@shell/components/Tabbed';
+import Tab from '@shell/components/Tabbed/Tab';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { exceptionToErrorsArray } from '@shell/utils/error';
+import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 
 export default {
-  name: "EditEngineImage",
+  name: 'EditEngineImage',
 
   components: {
     Loading,
@@ -40,9 +40,9 @@ export default {
     return {
       fvFormRuleSets: [
         {
-          path: "spec.image",
-          rules: ["required"],
-          translationKey: "longhorn.engineImage.form.image",
+          path: 'spec.image',
+          rules: ['required'],
+          translationKey: 'longhorn.engineImage.form.image',
         },
       ],
       LONGHORN_NAMESPACE,
@@ -55,7 +55,7 @@ export default {
       this.value.spec = {};
     }
     if (this.value.spec.image === undefined) {
-      this.value.spec.image = "";
+      this.value.spec.image = '';
     }
   },
 
@@ -68,10 +68,9 @@ export default {
       this.errors = [];
 
       if (!this.value.spec.image) {
-        this.errors.push(
-          this.t("longhorn.engineImage.form.validation.imageRequired")
-        );
+        this.errors.push(this.t('longhorn.engineImage.form.validation.imageRequired'));
         buttonDone(false);
+
         return;
       }
 
@@ -107,12 +106,12 @@ export default {
         :description-hidden="true"
         :force-namespace="LONGHORN_NAMESPACE"
       />
-      <Tabbed sideTabs :resource="value">
-        <Tab name="basics" labelKey="longhorn.engineImage.tab.basics">
+      <Tabbed side-tabs :resource="value">
+        <Tab name="basics" label-key="longhorn.engineImage.tab.basics">
           <LabeledInput
-            labelKey="longhorn.engineImage.form.image"
-            :mode="mode"
             v-model:value="value.spec.image"
+            label-key="longhorn.engineImage.form.image"
+            :mode="mode"
             :rules="fvGetAndReportPathRules('spec.image')"
           />
         </Tab>

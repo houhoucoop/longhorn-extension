@@ -1,13 +1,11 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useStore } from "vuex";
-import Loading from "@shell/components/Loading";
-import ResourceTable from "@shell/components/ResourceTable";
-import Banner from "@components/Banner/Banner.vue";
-import { allHash } from "@shell/utils/promise";
-import {
-  LONGHORN_RESOURCES,
-} from "@longhorn/types/resources";
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import Loading from '@shell/components/Loading';
+import ResourceTable from '@shell/components/ResourceTable';
+import Banner from '@components/Banner/Banner.vue';
+import { allHash } from '@shell/utils/promise';
+import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 
 const props = defineProps({
   resource: {
@@ -26,10 +24,11 @@ const store = useStore();
 const isLoading = ref(true);
 const loadError = ref(null);
 
-const inStore = computed(() => store.getters["currentProduct"].inStore);
+const inStore = computed(() => store.getters['currentProduct'].inStore);
 
 const allResources = computed(() => {
   if (!inStore.value) return [];
+
   return store.getters[`${inStore.value}/all`](props.resource) || [];
 });
 
@@ -40,25 +39,22 @@ async function fetchData() {
   loadError.value = null;
 
   if (!inStore.value) {
-    loadError.value = new Error("Vuex store namespace not found.");
+    loadError.value = new Error('Vuex store namespace not found.');
     isLoading.value = false;
+
     return;
   }
 
   try {
     const hash = {
-      systemRestore: store.dispatch(`${inStore.value}/findAll`, {
-        type: props.resource,
-      }),
+      systemRestore: store.dispatch(`${inStore.value}/findAll`, { type: props.resource }),
 
-      systemBackup: store.dispatch(`${inStore.value}/findAll`, {
-        type: LONGHORN_RESOURCES.SYSTEM_BACKUPS,
-      }),
+      systemBackup: store.dispatch(`${inStore.value}/findAll`, { type: LONGHORN_RESOURCES.SYSTEM_BACKUPS }),
     };
 
     await allHash(hash);
   } catch (e) {
-    console.error(`Failed to fetch ${props.resource} data:`, e);
+    // console.error(`Failed to fetch ${props.resource} data:`, e);
     loadError.value = e;
   } finally {
     isLoading.value = false;
@@ -74,7 +70,7 @@ defineExpose({ loadError, fetchData });
   <div v-else>
     <Banner v-if="loadError" color="error">
       {{
-        t("error.fetchError", {
+        t('error.fetchError', {
           message: loadError.message || String(loadError),
         })
       }}

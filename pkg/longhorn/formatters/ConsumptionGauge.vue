@@ -1,8 +1,8 @@
 <script setup>
-import { computed } from "vue";
-import ConsumptionGauge from "@shell/components/ConsumptionGauge";
-import { bytesToGi } from "@longhorn/utils/formatter";
-import { GiB_UNIT } from "@longhorn/types/units";
+import { computed } from 'vue';
+import ConsumptionGauge from '@shell/components/ConsumptionGauge';
+import { bytesToGi } from '@longhorn/utils/formatter';
+import { GiB_UNIT } from '@longhorn/types/units';
 
 const props = defineProps({
   value: {

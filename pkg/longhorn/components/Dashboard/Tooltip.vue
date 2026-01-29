@@ -1,9 +1,7 @@
 <script setup>
-import { ref, watch, onBeforeUnmount, nextTick } from "vue";
-import { useTooltip } from "@longhorn/components/Charts/composable";
-import {
-  createPopper,
-} from "@popperjs/core";
+import { ref, watch, onBeforeUnmount, nextTick } from 'vue';
+import { useTooltip } from '@longhorn/components/Charts/composable';
+import { createPopper } from '@popperjs/core';
 
 const { tooltipState } = useTooltip();
 
@@ -25,15 +23,14 @@ watch(
       popperInstance = null;
     }
     if (mouseMoveHandler) {
-      window.removeEventListener("mousemove", mouseMoveHandler);
+      window.removeEventListener('mousemove', mouseMoveHandler);
       mouseMoveHandler = null;
     }
 
     if (isVisible && popperElement && referenceElement) {
       let popperReference = referenceElement;
 
-      if (!("nodeType" in referenceElement)) {
-
+      if (!('nodeType' in referenceElement)) {
         const initialRect = referenceElement.getBoundingClientRect();
         let latestCoords = { x: initialRect.left, y: initialRect.top };
 
@@ -51,44 +48,40 @@ watch(
             right: latestCoords.x,
             bottom: latestCoords.y,
             x: latestCoords.x,
-          	y: latestCoords.y,
+            y: latestCoords.y,
             toJSON: () => JSON.stringify(latestCoords),
           }),
         };
 
         popperReference = dynamicVirtualElement;
-        window.addEventListener("mousemove", mouseMoveHandler);
+        window.addEventListener('mousemove', mouseMoveHandler);
       }
 
       popperInstance = createPopper(popperReference, popperElement, {
-        placement: "top",
+        placement: 'top',
         modifiers: [
-          { name: "arrow", options: { element: arrowEl.value, padding: 5 } },
-          { name: "offset", options: { offset: [0, 12] } },
-          { name: "flip", options: { fallbackPlacements: ["bottom"] } },
-          { name: "preventOverflow", options: { padding: 10 } },
+          { name: 'arrow', options: { element: arrowEl.value, padding: 5 } },
+          { name: 'offset', options: { offset: [0, 12] } },
+          { name: 'flip', options: { fallbackPlacements: ['bottom'] } },
+          { name: 'preventOverflow', options: { padding: 10 } },
         ],
       });
     }
   },
-  { flush: "post" }
+  { flush: 'post' }
 );
 
 onBeforeUnmount(() => {
   if (mouseMoveHandler) {
-    window.removeEventListener("mousemove", mouseMoveHandler);
+    window.removeEventListener('mousemove', mouseMoveHandler);
   }
   popperInstance?.destroy();
 });
 </script>
 
 <template>
-  <div
-    ref="tooltipEl"
-    v-if="tooltipState.visible"
-    class="app-tooltip"
-    role="tooltip"
-  >
+  <div v-if="tooltipState.visible" ref="tooltipEl" class="app-tooltip" role="tooltip">
+    <!-- eslint-disable-next-line vue/no-v-html -->
     <div class="app-tooltip__content" v-html="tooltipState.content"></div>
     <div ref="arrowEl" data-popper-arrow class="app-tooltip__arrow"></div>
   </div>
@@ -128,15 +121,15 @@ onBeforeUnmount(() => {
 
 .app-tooltip__arrow::before {
   visibility: visible;
-  content: "";
+  content: '';
   transform: rotate(45deg);
 }
 
-.app-tooltip[data-popper-placement^="top"] > .app-tooltip__arrow {
+.app-tooltip[data-popper-placement^='top'] > .app-tooltip__arrow {
   bottom: -4px;
 }
 
-.app-tooltip[data-popper-placement^="bottom"] > .app-tooltip__arrow {
+.app-tooltip[data-popper-placement^='bottom'] > .app-tooltip__arrow {
   top: -4px;
 }
 </style>

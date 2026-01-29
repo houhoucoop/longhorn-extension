@@ -1,15 +1,15 @@
 <script>
-import Loading from "@shell/components/Loading";
-import NameNsDescription from "@shell/components/form/NameNsDescription";
-import LabelValue from "@shell/components/LabelValue";
-import Tabbed from "@shell/components/Tabbed";
-import Tab from "@shell/components/Tabbed/Tab";
-import { _VIEW } from "@shell/config/query-params";
-import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
-import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from "@longhorn/types/resources";
+import Loading from '@shell/components/Loading';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import LabelValue from '@shell/components/LabelValue';
+import Tabbed from '@shell/components/Tabbed';
+import Tab from '@shell/components/Tabbed/Tab';
+import { _VIEW } from '@shell/config/query-params';
+import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 
 export default {
-  name: "DetailEngineImage",
+  name: 'DetailEngineImage',
 
   components: {
     Loading,
@@ -32,7 +32,8 @@ export default {
   },
 
   async fetch() {
-    const inStore = this.$store.getters["currentProduct"].inStore;
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
     await this.$store.dispatch(`${inStore}/find`, {
       type: LONGHORN_RESOURCES.SETTINGS,
       id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
@@ -49,12 +50,13 @@ export default {
   computed: {
     nodeDeploymentMap() {
       const map = this.value?.status?.nodeDeploymentMap;
-      if (!map) return "-";
+
+      if (!map) return '-';
 
       const result = Object.entries(map)
         .filter(([, val]) => val === true)
         .map(([key]) => key)
-        .join(", ");
+        .join(', ');
 
       return this.displayValue(result);
     },
@@ -62,9 +64,7 @@ export default {
 
   methods: {
     displayValue(val) {
-      return val === null || val === undefined || String(val).trim() === ""
-        ? "-"
-        : val;
+      return val === null || val === undefined || String(val).trim() === '' ? '-' : val;
     },
   },
 };
@@ -81,28 +81,13 @@ export default {
       :description-hidden="true"
       :force-namespace="LONGHORN_NAMESPACE"
     />
-    <Tabbed sideTabs :resource="value">
-      <Tab name="basics" labelKey="longhorn.engineImage.tab.basics">
-        <LabelValue
-          :name="t('longhorn.engineImage.form.image')"
-          :value="displayValue(value?.spec?.image)"
-        />
-        <LabelValue
-          :name="t('longhorn.engineImage.form.status')"
-          :value="displayValue(value?.status?.state)"
-        />
-        <LabelValue
-          :name="t('longhorn.engineImage.form.default')"
-          :value="displayValue(`${value?.isDefault}`)"
-        />
-        <LabelValue
-          :name="t('longhorn.engineImage.form.refCount')"
-          :value="displayValue(value?.status?.refCount)"
-        />
-        <LabelValue
-          :name="t('longhorn.engineImage.form.buildDate')"
-          :value="displayValue(value?.status?.buildDate)"
-        />
+    <Tabbed side-tabs :resource="value">
+      <Tab name="basics" label-key="longhorn.engineImage.tab.basics">
+        <LabelValue :name="t('longhorn.engineImage.form.image')" :value="displayValue(value?.spec?.image)" />
+        <LabelValue :name="t('longhorn.engineImage.form.status')" :value="displayValue(value?.status?.state)" />
+        <LabelValue :name="t('longhorn.engineImage.form.default')" :value="displayValue(`${value?.isDefault}`)" />
+        <LabelValue :name="t('longhorn.engineImage.form.refCount')" :value="displayValue(value?.status?.refCount)" />
+        <LabelValue :name="t('longhorn.engineImage.form.buildDate')" :value="displayValue(value?.status?.buildDate)" />
         <LabelValue
           :name="t('longhorn.engineImage.form.cliAPIVersion')"
           :value="displayValue(value?.status?.cliAPIVersion)"
@@ -115,10 +100,7 @@ export default {
           :name="t('longhorn.engineImage.form.noRefSince')"
           :value="displayValue(value?.status?.noRefSince)"
         />
-        <LabelValue
-          :name="t('longhorn.engineImage.form.nodeDeploymentMap')"
-          :value="nodeDeploymentMap"
-        />
+        <LabelValue :name="t('longhorn.engineImage.form.nodeDeploymentMap')" :value="nodeDeploymentMap" />
       </Tab>
     </Tabbed>
   </div>

@@ -1,16 +1,13 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
-import { useStore } from "vuex";
-import Loading from "@shell/components/Loading";
-import ResourceTable from "@shell/components/ResourceTable";
-import SortableTable from "@shell/components/SortableTable";
-import Banner from "@components/Banner/Banner.vue";
-import { allHash } from "@shell/utils/promise";
-import {
-  LONGHORN_RESOURCES,
-  LONGHORN_SETTINGS,
-} from "@longhorn/types/resources";
-import { DISKS_HEADERS } from '@longhorn/config/table-headers'
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import Loading from '@shell/components/Loading';
+import ResourceTable from '@shell/components/ResourceTable';
+import SortableTable from '@shell/components/SortableTable';
+import Banner from '@components/Banner/Banner.vue';
+import { allHash } from '@shell/utils/promise';
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
+import { DISKS_HEADERS } from '@longhorn/config/table-headers';
 
 const props = defineProps({
   resource: {
@@ -28,37 +25,34 @@ const store = useStore();
 const isLoading = ref(true);
 const loadError = ref(null);
 
-const inStore = computed(() => store.getters["currentProduct"].inStore);
+const inStore = computed(() => store.getters['currentProduct'].inStore);
 const getAll = (type) => {
   if (!inStore.value) {
     return [];
   }
 
   const getter = store.getters[`${inStore.value}/all`];
-  return typeof getter === "function" ? getter(type) || [] : [];
+
+  return typeof getter === 'function' ? getter(type) || [] : [];
 };
 
 const rows = computed(() => getAll(props.resource));
-const volumes = computed(() => getAll(LONGHORN_RESOURCES.VOLUMES));
 
 async function fetchData() {
   isLoading.value = true;
   loadError.value = null;
 
   if (!inStore.value) {
-    loadError.value = new Error("Vuex store namespace not found.");
+    loadError.value = new Error('Vuex store namespace not found.');
     isLoading.value = false;
+
     return;
   }
 
   try {
     const hash = {
-      nodes: store.dispatch(`${inStore.value}/findAll`, {
-        type: props.resource,
-      }),
-      volumes: store.dispatch(`${inStore.value}/findAll`, {
-        type: LONGHORN_RESOURCES.VOLUMES,
-      }),
+      nodes: store.dispatch(`${inStore.value}/findAll`, { type: props.resource }),
+      volumes: store.dispatch(`${inStore.value}/findAll`, { type: LONGHORN_RESOURCES.VOLUMES }),
       defaultStorageOverProvisioningPercentage: store.dispatch(`${inStore.value}/find`, {
         type: LONGHORN_RESOURCES.SETTINGS,
         id: LONGHORN_SETTINGS.STORAGE_OVER_PROVISIONING_PERCENTAGE,
@@ -67,7 +61,7 @@ async function fetchData() {
 
     await allHash(hash);
   } catch (e) {
-    console.error(`Failed to fetch ${props.resource} data:`, e);
+    // console.error(`Failed to fetch ${props.resource} data:`, e);
     loadError.value = e;
   } finally {
     isLoading.value = false;
@@ -81,9 +75,9 @@ defineExpose({ loadError, fetchData });
 <template>
   <Loading v-if="isLoading" />
   <div v-else>
-        <Banner v-if="loadError" color="error">
+    <Banner v-if="loadError" color="error">
       {{
-        t("error.fetchError", {
+        t('error.fetchError', {
           message: loadError.message || String(loadError),
         })
       }}
@@ -96,14 +90,8 @@ defineExpose({ loadError, fetchData });
       :rows="rows"
       :schema="props.schema"
     >
-      <template
-        #sub-row="{ row, fullColspan, onRowMouseEnter, onRowMouseLeave }"
-      >
-        <tr
-          class="sub-row"
-          @mouseenter="onRowMouseEnter"
-          @mouseleave="onRowMouseLeave"
-        >
+      <template #sub-row="{ row, fullColspan, onRowMouseEnter, onRowMouseLeave }">
+        <tr class="sub-row" @mouseenter="onRowMouseEnter" @mouseleave="onRowMouseLeave">
           <td :colspan="fullColspan">
             <SortableTable
               key-field="id"

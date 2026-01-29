@@ -1,45 +1,44 @@
 <script>
-import TabTitle from "@shell/components/TabTitle";
-import ResourceChart from "@longhorn/components/Dashboard/ResourceChart";
-import AppTooltip from "@longhorn/components/Dashboard/Tooltip";
-import Events from "@longhorn/components/Dashboard/Events";
-import LiveDate from "@shell/components/formatter/LiveDate";
-import { allHash } from "@shell/utils/promise";
-import {
-  LONGHORN_RESOURCES,
-  LONGHORN_SETTINGS,
-} from "@longhorn/types/resources";
+import TabTitle from '@shell/components/TabTitle';
+import ResourceChart from '@longhorn/components/Dashboard/ResourceChart';
+import AppTooltip from '@longhorn/components/Dashboard/Tooltip';
+import Events from '@longhorn/components/Dashboard/Events';
+import LiveDate from '@shell/components/formatter/LiveDate';
+import { allHash } from '@shell/utils/promise';
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
+
+import { bytesToGi } from '@longhorn/utils/formatter';
 
 const NODE_STATUS = {
-  DOWN: "Down",
-  DISABLED: "Disabled",
-  UNSCHEDULABLE: "Unschedulable",
-  SCHEDULABLE: "Schedulable",
+  DOWN: 'Down',
+  DISABLED: 'Disabled',
+  UNSCHEDULABLE: 'Unschedulable',
+  SCHEDULABLE: 'Schedulable',
 };
 const LONGHORN_COLORS = {
-  SUCCESS: "#27AE5F",
-  WARNING: "#F1C40F",
-  DANGER: "#EF494A",
-  INFO: "#78C8CF",
-  MUTED: "#D9DDDF",
+  SUCCESS: '#27AE5F',
+  WARNING: '#F1C40F',
+  DANGER: '#EF494A',
+  INFO: '#78C8CF',
+  MUTED: '#D9DDDF',
 };
 
-import { bytesToGi } from "@longhorn/utils/formatter";
-
 export default {
-  name: "LonghornDashboard",
-  components: { TabTitle, ResourceChart, AppTooltip, Events, LiveDate },
+  name: 'LonghornDashboard',
+  components: {
+    TabTitle,
+    ResourceChart,
+    AppTooltip,
+    Events,
+    LiveDate,
+  },
 
   async fetch() {
     const inStore = this.inStore;
 
     await allHash({
-      volumes: this.$store.dispatch(`${inStore}/findAll`, {
-        type: LONGHORN_RESOURCES.VOLUMES,
-      }),
-      nodes: this.$store.dispatch(`${inStore}/findAll`, {
-        type: LONGHORN_RESOURCES.NODES,
-      }),
+      volumes: this.$store.dispatch(`${inStore}/findAll`, { type: LONGHORN_RESOURCES.VOLUMES }),
+      nodes: this.$store.dispatch(`${inStore}/findAll`, { type: LONGHORN_RESOURCES.NODES }),
       serverVersion: this.$store.dispatch(`${inStore}/find`, {
         type: LONGHORN_RESOURCES.SETTINGS,
         id: LONGHORN_SETTINGS.CURRENT_LONGHORN_VERSION,
@@ -51,16 +50,15 @@ export default {
     getNodeStatus(node) {
       if (!node.status) return NODE_STATUS.DOWN;
 
-      const cond = (t) =>
-        node.status?.conditions?.find((c) => c.type === t)?.status;
+      const cond = (t) => node.status?.conditions?.find((c) => c.type === t)?.status;
 
-      const ready = cond("Ready");
-      const sched = cond("Schedulable");
+      const ready = cond('Ready');
+      const sched = cond('Schedulable');
 
-      if (ready === "False") return NODE_STATUS.DOWN;
+      if (ready === 'False') return NODE_STATUS.DOWN;
       if (node.spec?.allowScheduling === false) return NODE_STATUS.DISABLED;
-      if (sched === "False") return NODE_STATUS.UNSCHEDULABLE;
-      if (ready === "True" && sched === "True") return NODE_STATUS.SCHEDULABLE;
+      if (sched === 'False') return NODE_STATUS.UNSCHEDULABLE;
+      if (ready === 'True' && sched === 'True') return NODE_STATUS.SCHEDULABLE;
 
       return NODE_STATUS.DOWN;
     },
@@ -68,13 +66,24 @@ export default {
     hasData(chart) {
       if (!chart?.datasets?.length) return false;
       const sum = chart.datasets[0].data.reduce((a, b) => a + b, 0);
+
       return sum > 0.01;
     },
 
     processDisks() {
       const totals = {
-        fs: { sched: 0, reserved: 0, used: 0, disabled: 0 },
-        block: { sched: 0, reserved: 0, used: 0, disabled: 0 },
+        fs: {
+          sched: 0,
+          reserved: 0,
+          used: 0,
+          disabled: 0,
+        },
+        block: {
+          sched: 0,
+          reserved: 0,
+          used: 0,
+          disabled: 0,
+        },
       };
 
       this.nodes.forEach((node) => {
@@ -86,16 +95,14 @@ export default {
           const spec = disksSpec[diskName] || {};
           const type = st.diskType || spec.diskType;
 
-          if (!type || !["filesystem", "block"].includes(type)) continue;
+          if (!type || !['filesystem', 'block'].includes(type)) continue;
 
           const max = st.storageMaximum || 0;
           const avail = st.storageAvailable || 0;
           const reserved = spec.storageReserved || 0;
-          const schedulable =
-            st.conditions?.find((c) => c.type === "Schedulable")?.status ===
-            "True";
+          const schedulable = st.conditions?.find((c) => c.type === 'Schedulable')?.status === 'True';
 
-          const group = type === "filesystem" ? totals.fs : totals.block;
+          const group = type === 'filesystem' ? totals.fs : totals.block;
 
           group.used += max - avail;
           group.reserved += reserved;
@@ -124,24 +131,23 @@ export default {
         const state = s?.state;
         const robust = s?.robustness;
 
-        if (state === "detached" && robust === "faulted") counts.Faulty++;
-        else if (state === "attached" && robust === "degraded")
-          counts.Degraded++;
-        else if (state === "attached" && robust === "healthy") counts.Healthy++;
-        else if (state === "detached") counts.Detached++;
+        if (state === 'detached' && robust === 'faulted') counts.Faulty++;
+        else if (state === 'attached' && robust === 'degraded') counts.Degraded++;
+        else if (state === 'attached' && robust === 'healthy') counts.Healthy++;
+        else if (state === 'detached') counts.Detached++;
         else counts.InProgress++;
       });
 
       const volumeLabels = [
-        this.t("longhorn.volume.healthy"),
-        this.t("longhorn.volume.degraded"),
-        this.t("longhorn.volume.inProgress"),
-        this.t("longhorn.volume.faulty"),
-        this.t("longhorn.volume.detached"),
+        this.t('longhorn.volume.healthy'),
+        this.t('longhorn.volume.degraded'),
+        this.t('longhorn.volume.inProgress'),
+        this.t('longhorn.volume.faulty'),
+        this.t('longhorn.volume.detached'),
       ];
 
       return {
-        title: this.t("longhorn.dashboard.volume.title"),
+        title: this.t('longhorn.dashboard.volume.title'),
         labels: volumeLabels,
         datasets: [
           {
@@ -155,7 +161,7 @@ export default {
             ],
           },
         ],
-        resourceNameKey: "longhorn.dashboard.volume.title",
+        resourceNameKey: 'longhorn.dashboard.volume.title',
       };
     },
 
@@ -163,23 +169,18 @@ export default {
       const t = this.processDisks().fs;
 
       const storageLabels = [
-        this.t("longhorn.storage.schedulable"),
-        this.t("longhorn.storage.reserved"),
-        this.t("longhorn.storage.used"),
-        this.t("longhorn.storage.disabled"),
+        this.t('longhorn.storage.schedulable'),
+        this.t('longhorn.storage.reserved'),
+        this.t('longhorn.storage.used'),
+        this.t('longhorn.storage.disabled'),
       ];
 
       return {
-        title: this.t("longhorn.dashboard.filesystemStorage.title"),
+        title: this.t('longhorn.dashboard.filesystemStorage.title'),
         labels: storageLabels,
         datasets: [
           {
-            data: [
-              bytesToGi(t.sched),
-              bytesToGi(t.reserved),
-              bytesToGi(t.used),
-              bytesToGi(t.disabled),
-            ],
+            data: [bytesToGi(t.sched), bytesToGi(t.reserved), bytesToGi(t.used), bytesToGi(t.disabled)],
             backgroundColor: [
               LONGHORN_COLORS.SUCCESS,
               LONGHORN_COLORS.WARNING,
@@ -188,8 +189,8 @@ export default {
             ],
           },
         ],
-        suffix: "Gi",
-        resourceNameKey: "longhorn.storage.title",
+        suffix: 'Gi',
+        resourceNameKey: 'longhorn.storage.title',
       };
     },
 
@@ -204,14 +205,14 @@ export default {
       this.nodes.forEach((n) => counts[this.getNodeStatus(n)]++);
 
       const nodeLabels = [
-        this.t("longhorn.node.schedulable"),
-        this.t("longhorn.node.unschedulable"),
-        this.t("longhorn.node.down"),
-        this.t("longhorn.node.disabled"),
+        this.t('longhorn.node.schedulable'),
+        this.t('longhorn.node.unschedulable'),
+        this.t('longhorn.node.down'),
+        this.t('longhorn.node.disabled'),
       ];
 
       return {
-        title: this.t("longhorn.dashboard.node.title"),
+        title: this.t('longhorn.dashboard.node.title'),
         labels: nodeLabels,
         datasets: [
           {
@@ -229,7 +230,7 @@ export default {
             ],
           },
         ],
-        resourceNameKey: "longhorn.dashboard.node.title",
+        resourceNameKey: 'longhorn.dashboard.node.title',
       };
     },
 
@@ -237,14 +238,14 @@ export default {
       const blocks = this.processDisks().block;
 
       const blockLabels = [
-        this.t("longhorn.storage.schedulable"),
-        this.t("longhorn.storage.reserved"),
-        this.t("longhorn.storage.used"),
-        this.t("longhorn.storage.disabled"),
+        this.t('longhorn.storage.schedulable'),
+        this.t('longhorn.storage.reserved'),
+        this.t('longhorn.storage.used'),
+        this.t('longhorn.storage.disabled'),
       ];
 
       return {
-        title: this.t("longhorn.dashboard.blockStorage.title"),
+        title: this.t('longhorn.dashboard.blockStorage.title'),
         labels: blockLabels,
         datasets: [
           {
@@ -262,27 +263,23 @@ export default {
             ],
           },
         ],
-        suffix: "Gi",
-        resourceNameKey: "longhorn.storage.title",
+        suffix: 'Gi',
+        resourceNameKey: 'longhorn.storage.title',
       };
     },
   },
 
   computed: {
     inStore() {
-      return this.$store.getters["currentProduct"].inStore;
+      return this.$store.getters['currentProduct'].inStore;
     },
 
     volumes() {
-      return this.$store.getters[`${this.inStore}/all`](
-        LONGHORN_RESOURCES.VOLUMES
-      );
+      return this.$store.getters[`${this.inStore}/all`](LONGHORN_RESOURCES.VOLUMES);
     },
 
     nodes() {
-      return this.$store.getters[`${this.inStore}/all`](
-        LONGHORN_RESOURCES.NODES
-      );
+      return this.$store.getters[`${this.inStore}/all`](LONGHORN_RESOURCES.NODES);
     },
 
     volumeChart() {
@@ -309,6 +306,7 @@ export default {
       }
 
       result.push(this.nodesChart);
+
       return result;
     },
 
@@ -327,9 +325,8 @@ export default {
         return new Date().toISOString();
       }
 
-      const earliest = new Date(
-        Math.min(...timestamps.map((d) => d.getTime()))
-      );
+      const earliest = new Date(Math.min(...timestamps.map((d) => d.getTime())));
+
       return earliest.toISOString();
     },
 
@@ -338,7 +335,7 @@ export default {
         this.$store.getters[`${this.inStore}/byId`](
           LONGHORN_RESOURCES.SETTINGS,
           LONGHORN_SETTINGS.CURRENT_LONGHORN_VERSION
-        )?.value || ""
+        )?.value || ''
       );
     },
   },
@@ -355,7 +352,7 @@ export default {
 
     <div class="glance-container">
       <div>
-        <label> {{ t("longhorn.dashboard.version") }}: </label>
+        <label> {{ t('longhorn.dashboard.version') }}: </label>
         <span>
           <span v-clean-tooltip="{ content: currentVersion }">
             {{ currentVersion }}
@@ -363,20 +360,16 @@ export default {
         </span>
       </div>
       <div>
-        <label> {{ t("longhorn.dashboard.created") }}: </label>
+        <label> {{ t('longhorn.dashboard.created') }}: </label>
         <span>
-          <LiveDate
-            :value="nodeCreatedAt"
-            :add-suffix="true"
-            :show-tooltip="true"
-          />
+          <LiveDate :value="nodeCreatedAt" :add-suffix="true" :show-tooltip="true" />
         </span>
       </div>
     </div>
 
     <div
-      class="resource-gauges"
       :key="charts.length"
+      class="resource-gauges"
       :class="{
         'grid-3': charts.length === 3,
         'grid-4': charts.length >= 4,
@@ -386,7 +379,7 @@ export default {
         v-for="(chartData, index) in charts"
         :key="'group-' + index"
         :title="chartData.title"
-        :chartData="chartData"
+        :chart-data="chartData"
         :horizontal="charts.length < 4"
       />
     </div>
@@ -396,7 +389,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-@media (max-width: map-get($breakpoints, "--viewport-9")) {
+@media (max-width: map-get($breakpoints, '--viewport-9')) {
   .outlet {
     display: flex;
     flex-direction: column;
@@ -426,14 +419,14 @@ export default {
   grid-template-columns: 1fr;
   padding-bottom: 24px;
 
-  @media (min-width: map-get($breakpoints, "--viewport-9")) {
+  @media (min-width: map-get($breakpoints, '--viewport-9')) {
     &.grid-3,
     &.grid-4 {
       grid-template-columns: repeat(2, 1fr);
     }
   }
 
-  @media (min-width: map-get($breakpoints, "--viewport-12")) {
+  @media (min-width: map-get($breakpoints, '--viewport-12')) {
     &.grid-3 {
       grid-template-columns: repeat(3, 1fr);
     }

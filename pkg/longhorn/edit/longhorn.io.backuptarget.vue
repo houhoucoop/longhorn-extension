@@ -1,20 +1,20 @@
 <script>
-import Loading from "@shell/components/Loading";
-import CruResource from "@shell/components/CruResource";
-import NameNsDescription from "@shell/components/form/NameNsDescription";
-import { LabeledInput } from "@components/Form/LabeledInput";
-import Tabbed from "@shell/components/Tabbed";
-import Tab from "@shell/components/Tabbed/Tab";
-import CreateEditView from "@shell/mixins/create-edit-view";
-import FormValidation from "@shell/mixins/form-validation";
-import { _CREATE, _VIEW } from "@shell/config/query-params";
-import { exceptionToErrorsArray } from "@shell/utils/error";
-import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
-import UnitInput from "@shell/components/form/UnitInput.vue";
-import { set } from "@shell/utils/object";
+import Loading from '@shell/components/Loading';
+import CruResource from '@shell/components/CruResource';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import Tabbed from '@shell/components/Tabbed';
+import Tab from '@shell/components/Tabbed/Tab';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { exceptionToErrorsArray } from '@shell/utils/error';
+import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
+import UnitInput from '@shell/components/form/UnitInput.vue';
+import { set } from '@shell/utils/object';
 
 export default {
-  name: "EditBackupTarget",
+  name: 'EditBackupTarget',
 
   components: {
     Loading,
@@ -39,14 +39,14 @@ export default {
       _VIEW,
       fvFormRuleSets: [
         {
-          path: "spec.backupTargetURL",
-          rules: ["required"],
-          translationKey: "longhorn.backupTarget.table.header.backupTargetURL",
+          path: 'spec.backupTargetURL',
+          rules: ['required'],
+          translationKey: 'longhorn.backupTarget.table.header.backupTargetURL',
         },
         {
-          path: "spec.pollInterval",
-          rules: ["min:0", "isPositive"],
-          translationKey: "longhorn.backupTarget.table.header.pollInterval",
+          path: 'spec.pollInterval',
+          rules: ['min:0', 'isPositive'],
+          translationKey: 'longhorn.backupTarget.table.header.pollInterval',
         },
       ],
     };
@@ -58,17 +58,15 @@ export default {
 
   methods: {
     parseDurationToSeconds(d) {
-      if (!d || typeof d !== "string") return d;
+      if (!d || typeof d !== 'string') return d;
 
       const durationRegex = /((?<h>\d+)h)?((?<m>\d+)m)?((?<s>\d+)s?)?/;
       const match = d.match(durationRegex);
 
       if (match && match.groups) {
         const { h, m, s } = match.groups;
-        const totalSeconds =
-          parseInt(h || 0, 10) * 3600 +
-          parseInt(m || 0, 10) * 60 +
-          parseInt(s || 0, 10);
+        const totalSeconds = parseInt(h || 0, 10) * 3600 + parseInt(m || 0, 10) * 60 + parseInt(s || 0, 10);
+
         return totalSeconds;
       }
 
@@ -76,15 +74,14 @@ export default {
     },
 
     initResource() {
-      if (!this.value.spec) set(this.value, "spec", {});
+      if (!this.value.spec) set(this.value, 'spec', {});
 
       if (this.value.spec.pollInterval !== undefined) {
-        const seconds = this.parseDurationToSeconds(
-          this.value.spec.pollInterval,
-        );
-        set(this.value.spec, "pollInterval", seconds);
+        const seconds = this.parseDurationToSeconds(this.value.spec.pollInterval);
+
+        set(this.value.spec, 'pollInterval', seconds);
       } else if (this.mode === _CREATE) {
-        set(this.value.spec, "pollInterval", 300);
+        set(this.value.spec, 'pollInterval', 300);
       }
     },
 
@@ -98,15 +95,11 @@ export default {
       try {
         const spec = this.value.spec;
 
-        if (
-          spec.pollInterval !== undefined &&
-          spec.pollInterval !== null &&
-          spec.pollInterval !== ""
-        ) {
+        if (spec.pollInterval !== undefined && spec.pollInterval !== null && spec.pollInterval !== '') {
           const val = parseInt(spec.pollInterval, 10);
           const safeSeconds = isNaN(val) || val < 0 ? 0 : val;
 
-          set(spec, "pollInterval", `${safeSeconds}s`);
+          set(spec, 'pollInterval', `${safeSeconds}s`);
         }
 
         await this.actuallySave();
@@ -136,17 +129,13 @@ export default {
       @cancel="done"
       @error="onError"
     >
-      <NameNsDescription
-        :value="value"
-        :mode="mode"
-        :force-namespace="LONGHORN_NAMESPACE"
-      />
-      <Tabbed sideTabs :resource="value">
-        <Tab name="basics" labelKey="longhorn.backupTarget.tab.basics">
+      <NameNsDescription :value="value" :mode="mode" :force-namespace="LONGHORN_NAMESPACE" />
+      <Tabbed side-tabs :resource="value">
+        <Tab name="basics" label-key="longhorn.backupTarget.tab.basics">
           <div class="row mb-20">
             <LabeledInput
               v-model:value="value.spec.backupTargetURL"
-              labelKey="longhorn.backupTarget.table.header.backupTargetURL"
+              label-key="longhorn.backupTarget.table.header.backupTargetURL"
               :mode="mode"
               :rules="fvGetAndReportPathRules('spec.backupTargetURL')"
               required
@@ -155,7 +144,7 @@ export default {
           <div class="row mb-20">
             <LabeledInput
               v-model:value="value.spec.credentialSecret"
-              labelKey="longhorn.backupTarget.table.header.credentialSecret"
+              label-key="longhorn.backupTarget.table.header.credentialSecret"
               :mode="mode"
               placeholder="e.g. s3-secret"
             />
@@ -165,9 +154,7 @@ export default {
               v-model:value="value.spec.pollInterval"
               :label="t('longhorn.backupTarget.table.header.pollInterval')"
               :mode="mode"
-              :suffix="
-                t('suffix.seconds', { count: value.spec.pollInterval || 0 })
-              "
+              :suffix="t('suffix.seconds', { count: value.spec.pollInterval || 0 })"
               :min="0"
               :rules="fvGetAndReportPathRules('spec.pollInterval')"
               tooltip-key="longhorn.backupTarget.form.pollInterval.tooltip"

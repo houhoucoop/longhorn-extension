@@ -2,7 +2,7 @@
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 
 export default {
-  name:       'CreateLonghornResource',
+  name: 'CreateLonghornResource',
   components: { ResourceDetail },
 };
 </script>

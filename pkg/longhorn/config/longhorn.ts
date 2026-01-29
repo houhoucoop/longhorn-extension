@@ -1,36 +1,27 @@
-import {
-  PRODUCT_NAME,
-  LONGHORN_PAGES,
-  LONGHORN_GROUP,
-} from "@longhorn/types/longhorn";
-import { LONGHORN_RESOURCES } from "@longhorn/types/resources";
+import { PRODUCT_NAME, LONGHORN_PAGES, LONGHORN_GROUP } from '@longhorn/types/longhorn';
+import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import {
   ENGINE_IMAGES_HEADER,
   NODES_HEADER,
   RECURRING_JOBS_HEADER,
   BACKUP_TARGETS_HEADER,
   SYSTEM_BACKUPS_HEADER,
-  SYSTEM_RESTORE_HEADER
-} from "./table-headers";
+  SYSTEM_RESTORE_HEADER,
+} from './table-headers';
 
 export function init($plugin: any, store: any) {
-  const {
-    product,
-    basicType,
-    configureType,
-    virtualType,
-    mapType,
-    headers,
-    weightType,
-  } = $plugin.DSL(store, PRODUCT_NAME);
+  const { product, basicType, configureType, virtualType, mapType, headers, weightType } = $plugin.DSL(
+    store,
+    PRODUCT_NAME
+  );
 
   // ----- Product Configuration ----- //
   product({
-    ifHaveGroup: "longhorn.io",
+    ifHaveGroup: 'longhorn.io',
     removable: true,
     public: true,
-    icon: "longhorn",
-    inStore: "cluster",
+    icon: 'longhorn',
+    inStore: 'cluster',
     inExplorer: false,
   });
 
@@ -70,9 +61,7 @@ export function init($plugin: any, store: any) {
     name: LONGHORN_PAGES.SETTINGS,
     route: {
       name: `c-cluster-${PRODUCT_NAME}-${LONGHORN_RESOURCES.SETTINGS}`,
-      params: {
-        product: PRODUCT_NAME,
-      },
+      params: { product: PRODUCT_NAME },
     },
   });
 
@@ -87,9 +76,7 @@ export function init($plugin: any, store: any) {
   mapType(LONGHORN_RESOURCES.BACKUP_VOLUMES, LONGHORN_PAGES.BACKUP_VOLUMES);
 
   // System Backups
-  configureType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, {
-    canYaml: false,
-  });
+  configureType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, { canYaml: false });
   mapType(LONGHORN_RESOURCES.SYSTEM_BACKUPS, LONGHORN_PAGES.SYSTEM_BACKUPS);
   headers(LONGHORN_RESOURCES.SYSTEM_BACKUPS, SYSTEM_BACKUPS_HEADER);
 
@@ -103,9 +90,7 @@ export function init($plugin: any, store: any) {
 
   // ----- Advanced group pages ----- //
   // Engine Images
-  configureType(LONGHORN_RESOURCES.ENGINE_IMAGES, {
-    isEditable: false,
-  });
+  configureType(LONGHORN_RESOURCES.ENGINE_IMAGES, { isEditable: false });
   mapType(LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_PAGES.ENGINE_IMAGES);
   headers(LONGHORN_RESOURCES.ENGINE_IMAGES, ENGINE_IMAGES_HEADER);
 
@@ -115,10 +100,7 @@ export function init($plugin: any, store: any) {
     isRemovable: false,
     canYaml: false,
   });
-  mapType(
-    LONGHORN_RESOURCES.INSTANCE_MANAGERS,
-    LONGHORN_PAGES.INSTANCE_MANAGERS,
-  );
+  mapType(LONGHORN_RESOURCES.INSTANCE_MANAGERS, LONGHORN_PAGES.INSTANCE_MANAGERS);
 
   // ----- Sidebar configuration ----- //
   basicType([
@@ -132,14 +114,11 @@ export function init($plugin: any, store: any) {
       // LONGHORN_RESOURCES.BACKUP_VOLUMES,
       LONGHORN_RESOURCES.BACKUP_TARGETS,
       LONGHORN_RESOURCES.SYSTEM_BACKUPS,
-      LONGHORN_RESOURCES.SYSTEM_RESTORE
+      LONGHORN_RESOURCES.SYSTEM_RESTORE,
     ],
-    LONGHORN_GROUP.BACKUP_AND_RESTORE,
+    LONGHORN_GROUP.BACKUP_AND_RESTORE
   );
-  basicType(
-    [LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_RESOURCES.INSTANCE_MANAGERS],
-    LONGHORN_GROUP.ADVANCED,
-  );
+  basicType([LONGHORN_RESOURCES.ENGINE_IMAGES, LONGHORN_RESOURCES.INSTANCE_MANAGERS], LONGHORN_GROUP.ADVANCED);
   weightType(LONGHORN_PAGES.DASHBOARD, 999, true);
   weightType(LONGHORN_RESOURCES.NODES, 800, true);
   weightType(LONGHORN_RESOURCES.RECURRING_JOBS, 700, true);

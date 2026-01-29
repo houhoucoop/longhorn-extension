@@ -2,8 +2,8 @@
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 
 export default {
-  name:        'LonghornResourcedId',
-  components:  { ResourceDetail },
+  name: 'LonghornResourcedId',
+  components: { ResourceDetail },
 };
 </script>
 

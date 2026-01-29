@@ -1,40 +1,35 @@
 <script>
-import Loading from "@shell/components/Loading";
-import CruResource from "@shell/components/CruResource";
-import NameNsDescription from "@shell/components/form/NameNsDescription";
-import LabeledSelect from "@shell/components/form/LabeledSelect";
-import Select from "@shell/components/form/Select";
-import ArrayList from "@shell/components/form/ArrayList";
-import KeyValue from "@shell/components/form/KeyValue";
-import Tabbed from "@shell/components/Tabbed";
-import Tab from "@shell/components/Tabbed/Tab";
-import CronExpressionEditorModal from "@shell/components/Cron/CronExpressionEditorModal";
-import CreateEditView from "@shell/mixins/create-edit-view";
-import FormValidation from "@shell/mixins/form-validation";
-import { _CREATE, _VIEW } from "@shell/config/query-params";
-import { exceptionToErrorsArray } from "@shell/utils/error";
-import { get, set } from "@shell/utils/object";
-import { randomStr } from "@shell/utils/string";
-import { LabeledInput } from "@components/Form/LabeledInput";
-import { Checkbox } from "@components/Form/Checkbox";
-import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
-import {
-  RECURRING_JOB_TASK,
-  PARAM_KEYS,
-  VOLUME_BACKUP_POLICY,
-} from "@longhorn/types/recurringjob";
+import Loading from '@shell/components/Loading';
+import CruResource from '@shell/components/CruResource';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import ArrayList from '@shell/components/form/ArrayList';
+import KeyValue from '@shell/components/form/KeyValue';
+import Tabbed from '@shell/components/Tabbed';
+import Tab from '@shell/components/Tabbed/Tab';
+import CronExpressionEditorModal from '@shell/components/Cron/CronExpressionEditorModal';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { exceptionToErrorsArray } from '@shell/utils/error';
+import { get, set } from '@shell/utils/object';
+import { randomStr } from '@shell/utils/string';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
+import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
+import { RECURRING_JOB_TASK, PARAM_KEYS, VOLUME_BACKUP_POLICY } from '@longhorn/types/recurringjob';
 
 const DEFAULT_SPEC = {
   retain: 1,
   concurrency: 1,
-  cron: "0 0 * * *",
+  cron: '0 0 * * *',
   groups: [],
   labels: {},
   parameters: {},
 };
 
 export default {
-  name: "EditRecurringJob",
+  name: 'EditRecurringJob',
 
   components: {
     Loading,
@@ -42,7 +37,6 @@ export default {
     NameNsDescription,
     LabeledInput,
     LabeledSelect,
-    Select,
     Checkbox,
     ArrayList,
     KeyValue,
@@ -90,15 +84,11 @@ export default {
           value: RECURRING_JOB_TASK.SNAPSHOT,
         },
         {
-          label: this.t(
-            `longhorn.recurringJob.form.taskOptions.snapshotDelete`
-          ),
+          label: this.t(`longhorn.recurringJob.form.taskOptions.snapshotDelete`),
           value: RECURRING_JOB_TASK.SNAPSHOT_DELETE,
         },
         {
-          label: this.t(
-            `longhorn.recurringJob.form.taskOptions.snapshotCleanup`
-          ),
+          label: this.t(`longhorn.recurringJob.form.taskOptions.snapshotCleanup`),
           value: RECURRING_JOB_TASK.SNAPSHOT_CLEANUP,
         },
         {
@@ -106,9 +96,7 @@ export default {
           value: RECURRING_JOB_TASK.SYSTEM_BACKUP,
         },
         {
-          label: this.t(
-            `longhorn.recurringJob.form.taskOptions.filesystemTrim`
-          ),
+          label: this.t(`longhorn.recurringJob.form.taskOptions.filesystemTrim`),
           value: RECURRING_JOB_TASK.FILESYSTEM_TRIM,
         },
       ];
@@ -130,69 +118,69 @@ export default {
     canAddParameter() {
       if (this.mode === _VIEW) return false;
       const params = this.value?.spec?.parameters || {};
-      const currentKeys = Object.keys(params).filter((k) => k !== "");
+      const currentKeys = Object.keys(params).filter((k) => k !== '');
+
       return currentKeys.length < this.parameterKeyOptions.length;
     },
 
     isForceCreateSupported() {
-      return [RECURRING_JOB_TASK.BACKUP, RECURRING_JOB_TASK.SNAPSHOT].includes(
-        this.localTask
-      );
+      return [RECURRING_JOB_TASK.BACKUP, RECURRING_JOB_TASK.SNAPSHOT].includes(this.localTask);
     },
 
     localTask: {
       get() {
-        return (this.value?.spec?.task || "").replace("-force-create", "");
+        return (this.value?.spec?.task || '').replace('-force-create', '');
       },
       set(val) {
-        if (!this.value.spec) set(this.value, "spec", {});
+        if (!this.value.spec) set(this.value, 'spec', {});
         const finalTask =
-          this.forceCreate &&
-          [RECURRING_JOB_TASK.SNAPSHOT, RECURRING_JOB_TASK.BACKUP].includes(val)
+          this.forceCreate && [RECURRING_JOB_TASK.SNAPSHOT, RECURRING_JOB_TASK.BACKUP].includes(val)
             ? `${val}-force-create`
             : val;
-        set(this.value.spec, "task", finalTask);
+
+        set(this.value.spec, 'task', finalTask);
       },
     },
 
     validationSchema() {
       const basics = [
         {
-          path: "metadata.name",
-          rules: ["required"],
-          translationKey: "generic.name",
+          path: 'metadata.name',
+          rules: ['required'],
+          translationKey: 'generic.name',
         },
         {
-          path: "spec.task",
-          rules: ["required"],
-          translationKey: "longhorn.recurringJob.table.header.task",
+          path: 'spec.task',
+          rules: ['required'],
+          translationKey: 'longhorn.recurringJob.table.header.task',
         },
         {
-          path: "spec.retain",
-          rules: ["requiredInt", "min:0", "isPositive"],
-          translationKey: "longhorn.recurringJob.table.header.retain",
+          path: 'spec.retain',
+          rules: ['requiredInt', 'min:0', 'isPositive'],
+          translationKey: 'longhorn.recurringJob.table.header.retain',
         },
         {
-          path: "spec.cron",
-          rules: ["required"],
-          translationKey: "longhorn.recurringJob.table.header.schedule",
+          path: 'spec.cron',
+          rules: ['required'],
+          translationKey: 'longhorn.recurringJob.table.header.schedule',
         },
       ];
 
       if (this.localTask !== RECURRING_JOB_TASK.SYSTEM_BACKUP) {
         basics.push({
-          path: "spec.concurrency",
-          rules: ["requiredInt", "min:1", "isPositive"],
-          translationKey: "longhorn.recurringJob.table.header.concurrency",
+          path: 'spec.concurrency',
+          rules: ['requiredInt', 'min:1', 'isPositive'],
+          translationKey: 'longhorn.recurringJob.table.header.concurrency',
         });
       }
 
       const params = this.value?.spec?.parameters || {};
+
       Object.keys(params).forEach((key) => {
         if (key?.trim()) {
-          const rules = ["required"];
-          if (key === PARAM_KEYS.FULL_BACKUP_INTERVAL)
-            rules.push("requiredInt", "min:0", "isPositive");
+          const rules = ['required'];
+
+          if (key === PARAM_KEYS.FULL_BACKUP_INTERVAL) rules.push('requiredInt', 'min:0', 'isPositive');
           basics.push({ path: `spec.parameters.${key}`, rules });
         }
       });
@@ -202,13 +190,16 @@ export default {
 
     tabErrors() {
       const schema = this.validationSchema;
+
       if (!schema?.basics) return { basics: false };
       const hasError = (fields) =>
         fields.some((f) => {
           const val = get(this.value, f.path);
           const rules = this.fvGetPathRules(f.path) || [];
-          return rules.some((rule) => typeof rule(val) === "string");
+
+          return rules.some((rule) => typeof rule(val) === 'string');
         });
+
       return { basics: hasError(schema.basics) };
     },
 
@@ -223,17 +214,15 @@ export default {
 
   methods: {
     initResource() {
-      if (!this.value.metadata) set(this.value, "metadata", {});
-      if (!this.value.spec) set(this.value, "spec", {});
+      if (!this.value.metadata) set(this.value, 'metadata', {});
+      if (!this.value.spec) set(this.value, 'spec', {});
 
       if (this.mode === _CREATE) {
-        if (!this.value.metadata.name)
-          set(this.value.metadata, "name", `c-${randomStr(6).toLowerCase()}`);
-        if (!this.value.spec.task)
-          set(this.value.spec, "task", RECURRING_JOB_TASK.SNAPSHOT);
+        if (!this.value.metadata.name) set(this.value.metadata, 'name', `c-${randomStr(6).toLowerCase()}`);
+        if (!this.value.spec.task) set(this.value.spec, 'task', RECURRING_JOB_TASK.SNAPSHOT);
       }
 
-      this.forceCreate = !!this.value.spec.task?.endsWith("-force-create");
+      this.forceCreate = !!this.value.spec.task?.endsWith('-force-create');
 
       Object.entries(DEFAULT_SPEC).forEach(([key, val]) => {
         if (this.value.spec[key] === undefined) {
@@ -250,48 +239,35 @@ export default {
 
     initParametersByTask() {
       if (!this.value?.spec) return;
-      if (!this.value.spec.parameters) set(this.value.spec, "parameters", {});
+      if (!this.value.spec.parameters) set(this.value.spec, 'parameters', {});
 
       const task = this.localTask;
       const params = this.value.spec.parameters;
 
       if (task === RECURRING_JOB_TASK.SYSTEM_BACKUP) {
         if (params[PARAM_KEYS.VOLUME_BACKUP_POLICY] === undefined) {
-          set(
-            this.value.spec.parameters,
-            PARAM_KEYS.VOLUME_BACKUP_POLICY,
-            VOLUME_BACKUP_POLICY.IF_NOT_PRESENT
-          );
+          set(this.value.spec.parameters, PARAM_KEYS.VOLUME_BACKUP_POLICY, VOLUME_BACKUP_POLICY.IF_NOT_PRESENT);
         }
-      } else if (
-        task === RECURRING_JOB_TASK.BACKUP &&
-        params[""] !== undefined
-      ) {
-        set(this.value.spec, "parameters", {});
+      } else if (task === RECURRING_JOB_TASK.BACKUP && params[''] !== undefined) {
+        set(this.value.spec, 'parameters', {});
       }
     },
 
     addParameter() {
       const available = this.parameterKeyOptions;
-      const params = JSON.parse(
-        JSON.stringify(this.value.spec.parameters || {})
-      );
+      const params = JSON.parse(JSON.stringify(this.value.spec.parameters || {}));
 
-      const nextKey = available.find(
-        (k) => k && !Object.keys(params).includes(k)
-      );
+      const nextKey = available.find((k) => k && !Object.keys(params).includes(k));
 
       if (nextKey) {
-        if (params[""] !== undefined) delete params[""];
+        if (params[''] !== undefined) delete params[''];
 
         const defaultVal =
-          this.localTask === RECURRING_JOB_TASK.SYSTEM_BACKUP
-            ? VOLUME_BACKUP_POLICY.IF_NOT_PRESENT
-            : "0";
+          this.localTask === RECURRING_JOB_TASK.SYSTEM_BACKUP ? VOLUME_BACKUP_POLICY.IF_NOT_PRESENT : '0';
 
         params[nextKey] = defaultVal;
 
-        set(this.value.spec, "parameters", { ...params });
+        set(this.value.spec, 'parameters', { ...params });
       }
     },
 
@@ -300,13 +276,13 @@ export default {
       if (!this.isFormValid) return buttonDone(false);
 
       try {
-        if (this.value.metadata?.name)
-          this.value.spec.name = this.value.metadata.name;
+        if (this.value.metadata?.name) this.value.spec.name = this.value.metadata.name;
         const finalParams = { ...this.value.spec.parameters };
+
         Object.keys(finalParams).forEach((k) => {
-          if (!k || k.trim() === "") delete finalParams[k];
+          if (!k || k.trim() === '') delete finalParams[k];
         });
-        set(this.value.spec, "parameters", finalParams);
+        set(this.value.spec, 'parameters', finalParams);
 
         await this.actuallySave();
         buttonDone(true);
@@ -322,6 +298,7 @@ export default {
     validationSchema: {
       handler(neu) {
         const all = neu?.basics || [];
+
         this.fvFormRuleSets = all;
         this.fvReportedValidationPaths = all.map((f) => f.path);
       },
@@ -332,7 +309,7 @@ export default {
     async localTask(neu, old) {
       if (neu === old || !this.value.spec) return;
 
-      set(this.value.spec, "parameters", {});
+      set(this.value.spec, 'parameters', {});
 
       Object.entries(DEFAULT_SPEC).forEach(([key, val]) => {
         set(this.value.spec, key, JSON.parse(JSON.stringify(val)));
@@ -342,10 +319,8 @@ export default {
 
       await this.$nextTick();
 
-      if (neu === RECURRING_JOB_TASK.FILESYSTEM_TRIM)
-        set(this.value.spec, "retain", 0);
-      if (neu === RECURRING_JOB_TASK.SYSTEM_BACKUP)
-        set(this.value.spec, "concurrency", 1);
+      if (neu === RECURRING_JOB_TASK.FILESYSTEM_TRIM) set(this.value.spec, 'retain', 0);
+      if (neu === RECURRING_JOB_TASK.SYSTEM_BACKUP) set(this.value.spec, 'concurrency', 1);
     },
   },
 };
@@ -364,18 +339,9 @@ export default {
       @cancel="done"
       @error="onError"
     >
-      <NameNsDescription
-        :value="value"
-        :mode="mode"
-        :force-namespace="LONGHORN_NAMESPACE"
-        :namespaced="false"
-      />
-      <Tabbed sideTabs :resource="value">
-        <Tab
-          name="basics"
-          labelKey="longhorn.recurringJob.tab.basics"
-          :error="tabErrors.basics"
-        >
+      <NameNsDescription :value="value" :mode="mode" :force-namespace="LONGHORN_NAMESPACE" :namespaced="false" />
+      <Tabbed side-tabs :resource="value">
+        <Tab name="basics" label-key="longhorn.recurringJob.tab.basics" :error="tabErrors.basics">
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledSelect
@@ -392,11 +358,7 @@ export default {
               <Checkbox
                 v-model:value="forceCreate"
                 v-clean-tooltip="
-                  `Create ${
-                    localTask === RECURRING_JOB_TASK.BACKUP
-                      ? 'backups'
-                      : 'snapshots'
-                  } periodically.`
+                  `Create ${localTask === RECURRING_JOB_TASK.BACKUP ? 'backups' : 'snapshots'} periodically.`
                 "
                 :mode="mode"
                 :disabled="mode !== _CREATE"
@@ -415,19 +377,13 @@ export default {
                 :label="t('longhorn.recurringJob.table.header.retain')"
                 :min="0"
                 :rules="fvGetAndReportPathRules('spec.retain')"
-                :disabled="
-                  localTask === RECURRING_JOB_TASK.FILESYSTEM_TRIM ||
-                  mode === _VIEW
-                "
+                :disabled="localTask === RECURRING_JOB_TASK.FILESYSTEM_TRIM || mode === _VIEW"
                 required
               />
             </div>
           </div>
 
-          <div
-            v-if="localTask !== RECURRING_JOB_TASK.SYSTEM_BACKUP"
-            class="row mb-20"
-          >
+          <div v-if="localTask !== RECURRING_JOB_TASK.SYSTEM_BACKUP" class="row mb-20">
             <div class="col span-6">
               <LabeledInput
                 v-model:value.number="value.spec.concurrency"
@@ -453,24 +409,14 @@ export default {
               />
             </div>
             <div class="col span-6">
-              <button
-                v-if="mode !== _VIEW"
-                type="button"
-                class="btn role-tertiary"
-                @click="showCronModal = true"
-              >
-                {{ t("generic.edit") }}
+              <button v-if="mode !== _VIEW" type="button" class="btn role-tertiary" @click="showCronModal = true">
+                {{ t('generic.edit') }}
               </button>
             </div>
           </div>
 
           <div
-            v-if="
-              [
-                RECURRING_JOB_TASK.BACKUP,
-                RECURRING_JOB_TASK.SYSTEM_BACKUP,
-              ].includes(localTask)
-            "
+            v-if="[RECURRING_JOB_TASK.BACKUP, RECURRING_JOB_TASK.SYSTEM_BACKUP].includes(localTask)"
             class="row mt-40"
           >
             <div class="col span-12">
@@ -483,13 +429,13 @@ export default {
               >
                 <template #title
                   ><h4>
-                    {{ t("longhorn.recurringJob.form.parameters") }}
+                    {{ t('longhorn.recurringJob.form.parameters') }}
                   </h4></template
                 >
                 <template #key="{ row }"
                   ><LabeledSelect
-                    label="Key"
                     v-model:value="row.key"
+                    label="Key"
                     :options="parameterKeyOptions"
                     :mode="mode"
                     disabled
@@ -501,9 +447,7 @@ export default {
                     label="Value"
                     :options="volumeBackupPolicyOptions"
                     :mode="mode"
-                    :rules="
-                      fvGetAndReportPathRules(`spec.parameters.${row.key}`)
-                    "
+                    :rules="fvGetAndReportPathRules(`spec.parameters.${row.key}`)"
                     @update:value="queueUpdate"
                   />
                   <LabeledInput
@@ -511,16 +455,8 @@ export default {
                     v-model:value="row.value"
                     label="Value"
                     :mode="mode"
-                    :type="
-                      row.key === PARAM_KEYS.FULL_BACKUP_INTERVAL
-                        ? 'number'
-                        : 'text'
-                    "
-                    :rules="
-                      row.key
-                        ? fvGetAndReportPathRules(`spec.parameters.${row.key}`)
-                        : []
-                    "
+                    :type="row.key === PARAM_KEYS.FULL_BACKUP_INTERVAL ? 'number' : 'text'"
+                    :rules="row.key ? fvGetAndReportPathRules(`spec.parameters.${row.key}`) : []"
                     @update:value="queueUpdate"
                   />
                 </template>
@@ -536,7 +472,7 @@ export default {
                       }
                     "
                   >
-                    {{ t("generic.add") }}
+                    {{ t('generic.add') }}
                   </button>
                 </template>
                 <template #removeButton="{ remove, row, i }">
@@ -545,12 +481,11 @@ export default {
                     class="btn role-link"
                     :disabled="
                       mode === _VIEW ||
-                      (localTask === RECURRING_JOB_TASK.SYSTEM_BACKUP &&
-                        row.key === PARAM_KEYS.VOLUME_BACKUP_POLICY)
+                      (localTask === RECURRING_JOB_TASK.SYSTEM_BACKUP && row.key === PARAM_KEYS.VOLUME_BACKUP_POLICY)
                     "
                     @click="remove(i)"
                   >
-                    {{ t("generic.remove") }}
+                    {{ t('generic.remove') }}
                   </button>
                 </template>
               </KeyValue>
@@ -561,7 +496,7 @@ export default {
         <Tab
           v-if="localTask !== RECURRING_JOB_TASK.SYSTEM_BACKUP"
           name="labels"
-          labelKey="longhorn.recurringJob.tab.labels"
+          label-key="longhorn.recurringJob.tab.labels"
         >
           <ArrayList
             v-model:value="value.spec.groups"
@@ -577,10 +512,7 @@ export default {
         </Tab>
       </Tabbed>
     </CruResource>
-    <CronExpressionEditorModal
-      v-model:show="showCronModal"
-      v-model:cron-expression="value.spec.cron"
-    />
+    <CronExpressionEditorModal v-model:show="showCronModal" v-model:cron-expression="value.spec.cron" />
   </div>
 </template>
 

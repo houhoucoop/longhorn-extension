@@ -1,29 +1,35 @@
 <script>
-import { RadioGroup } from "@components/Form/Radio";
-import UnitInput from "@shell/components/form/UnitInput.vue";
-import { LabeledInput } from "@components/Form/LabeledInput";
-import ArrayList from "@shell/components/form/ArrayList";
-import { BadgeState } from "@components/BadgeState";
+import { RadioGroup } from '@components/Form/Radio';
+import UnitInput from '@shell/components/form/UnitInput.vue';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import ArrayList from '@shell/components/form/ArrayList';
+import { BadgeState } from '@components/BadgeState';
 
 export default {
-  components: { BadgeState, LabeledInput, UnitInput, RadioGroup, ArrayList },
+  components: {
+    BadgeState,
+    LabeledInput,
+    UnitInput,
+    RadioGroup,
+    ArrayList,
+  },
   props: {
     mode: { type: String, required: true },
     value: { type: Object, required: true },
     conditions: { type: Array, default: () => [] },
-    rules: { type: Object, default: () => ({}) }
+    rules: { type: Object, default: () => ({}) },
   },
   computed: {
     nodeSchedulingOptions() {
       return [
-        { label: this.t("generic.enabled"), value: true },
-        { label: this.t("generic.disabled"), value: false },
+        { label: this.t('generic.enabled'), value: true },
+        { label: this.t('generic.disabled'), value: false },
       ];
     },
     evictionRequestedOptions() {
       return [
-        { label: this.t("generic.trueOption"), value: true },
-        { label: this.t("generic.falseOption"), value: false },
+        { label: this.t('generic.trueOption'), value: true },
+        { label: this.t('generic.falseOption'), value: false },
       ];
     },
   },
@@ -36,10 +42,10 @@ export default {
       <BadgeState
         v-for="condition in conditions"
         :key="condition.key"
+        v-clean-tooltip="condition.tooltip"
         class="mr-10 mb-10"
         :value="condition.value"
         :icon="condition.icon"
-        v-clean-tooltip="condition.tooltip"
       />
     </div>
 
@@ -94,7 +100,7 @@ export default {
           :add-label="t('longhorn.node.form.addTags')"
         >
           <template #title>
-            <h4>{{ t("longhorn.node.form.tags") }}</h4>
+            <h4>{{ t('longhorn.node.form.tags') }}</h4>
           </template>
         </ArrayList>
       </div>

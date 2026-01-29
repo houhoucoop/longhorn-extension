@@ -1,0 +1,8 @@
+node_modules
+dist
+dist-pkg
+coverage
+.nuxt
+.shell
+*.min.js
+*.map

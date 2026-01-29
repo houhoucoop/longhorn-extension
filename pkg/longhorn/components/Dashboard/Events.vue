@@ -1,17 +1,11 @@
 <script>
-import { defineComponent } from "vue";
-import {
-  MESSAGE,
-  NAME,
-  OBJECT,
-  REASON,
-  EVENT_TYPE,
-} from "@shell/config/table-headers";
-import { EVENT } from "@shell/config/types";
-import PaginatedResourceTable from "@shell/components/PaginatedResourceTable";
-import { STEVE_NAME_COL } from "@shell/config/pagination-table-headers";
-import { headerFromSchemaColString } from "@shell/store/type-map.utils";
-import { NAME as EXPLORER } from "@shell/config/product/explorer";
+import { defineComponent } from 'vue';
+import { MESSAGE, NAME, OBJECT, REASON, EVENT_TYPE } from '@shell/config/table-headers';
+import { EVENT } from '@shell/config/types';
+import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
+import { STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
+import { headerFromSchemaColString } from '@shell/store/type-map.utils';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 const reason = {
   ...REASON,
@@ -24,19 +18,19 @@ const eventHeaders = [
   MESSAGE,
   NAME,
   {
-    name: "date",
-    label: "Date",
-    labelKey: "clusterIndexPage.sections.events.date.label",
-    value: "timestamp",
-    sort: "timestamp:desc",
-    formatter: "Date",
+    name: 'date',
+    label: 'Date',
+    labelKey: 'clusterIndexPage.sections.events.date.label',
+    value: 'timestamp',
+    sort: 'timestamp:desc',
+    formatter: 'Date',
     width: 220,
     defaultSort: true,
   },
 ];
 
 export default defineComponent({
-  name: "LonghornEvents",
+  name: 'LonghornEvents',
 
   components: { PaginatedResourceTable },
 
@@ -46,9 +40,11 @@ export default defineComponent({
       events: [],
       eventHeaders,
       paginationHeaders: null,
-      dismissRouteHandler: (() => {}),
+      dismissRouteHandler: () => {
+        // Handler for dismiss route
+      },
       allEventsLink: {
-        name: "c-cluster-product-resource",
+        name: 'c-cluster-product-resource',
         params: {
           product: EXPLORER,
           resource: EVENT,
@@ -58,26 +54,16 @@ export default defineComponent({
   },
 
   beforeMount() {
-    const schema = this.$store.getters["cluster/schemaFor"](EVENT);
+    const schema = this.$store.getters['cluster/schemaFor'](EVENT);
 
     const paginationHeaders = schema
       ? [
           {
-            ...headerFromSchemaColString(
-              "Last Seen",
-              schema,
-              this.$store.getters,
-              true,
-            ),
+            ...headerFromSchemaColString('Last Seen', schema, this.$store.getters, true),
             defaultSort: true,
           },
-          headerFromSchemaColString(
-            "First Seen",
-            schema,
-            this.$store.getters,
-            true
-          ),
-          headerFromSchemaColString("Count", schema, this.$store.getters, true),
+          headerFromSchemaColString('First Seen', schema, this.$store.getters, true),
+          headerFromSchemaColString('Count', schema, this.$store.getters, true),
           {
             ...STEVE_NAME_COL,
             defaultSort: false,
@@ -85,7 +71,7 @@ export default defineComponent({
           OBJECT,
           EVENT_TYPE,
           reason,
-          headerFromSchemaColString("Source", schema, this.$store.getters, true),
+          headerFromSchemaColString('Source', schema, this.$store.getters, true),
           MESSAGE,
         ]
       : [];
@@ -95,9 +81,7 @@ export default defineComponent({
   },
 
   mounted() {
-    this.dismissRouteHandler = this.$router.beforeEach((to, from, next) =>
-      this.onRouteChange(to, from, next)
-    );
+    this.dismissRouteHandler = this.$router.beforeEach((to, from, next) => this.onRouteChange(to, from, next));
   },
 
   beforeUnmount() {
@@ -107,7 +91,7 @@ export default defineComponent({
   methods: {
     async onRouteChange(to, from, next) {
       if (this.$route.name !== to.name) {
-        await this.$store.dispatch("cluster/forgetType", EVENT);
+        await this.$store.dispatch('cluster/forgetType', EVENT);
       }
       next();
     },
@@ -123,7 +107,7 @@ export default defineComponent({
           exact: true,
           exists: false,
           field: undefined,
-          value: "longhorn-system",
+          value: 'longhorn-system',
         },
       ];
 
@@ -135,7 +119,7 @@ export default defineComponent({
 
 <template>
   <h3 class="title">
-    {{ t("longhorn.dashboard.events") }}
+    {{ t('longhorn.dashboard.events') }}
   </h3>
   <PaginatedResourceTable
     v-if="!!schema"

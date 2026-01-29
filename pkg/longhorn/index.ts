@@ -3,15 +3,15 @@ import { IPlugin, OnNavToPackage, OnNavAwayFromPackage } from '@shell/core/types
 import longhornStore from './store';
 import longhornRoutes from './routes/longhorn';
 
-const onEnter: OnNavToPackage = async(store, config) => {
+const onEnter: OnNavToPackage = async (store, config) => {
   // define any function needed here for `onEnter`
 };
-const onLeave: OnNavAwayFromPackage = async(store, config) => {
+const onLeave: OnNavAwayFromPackage = async (store, config) => {
   // define any function needed here for `onLeave`
 };
 
 // Init the package
-export default function(plugin: IPlugin) {
+export default function (plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 

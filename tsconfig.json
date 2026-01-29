@@ -3,11 +3,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
-    "lib": [
-      "ESNext",
-      "ESNext.AsyncIterable",
-      "DOM"
-    ],
+    "lib": ["ESNext", "ESNext.AsyncIterable", "DOM"],
     "esModuleInterop": true,
     "allowJs": true,
     "sourceMap": false,
@@ -15,31 +11,13 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./*"
-      ],
-      "@/*": [
-        "./*"
-      ],
-      "@shell/*": [
-        "./node_modules/@rancher/shell/*"
-      ],
-      "@longhorn/*": [
-        "./pkg/longhorn/*"
-      ]
+      "~/*": ["./*"],
+      "@/*": ["./*"],
+      "@shell/*": ["./node_modules/@rancher/shell/*"],
+      "@longhorn/*": ["./pkg/longhorn/*"]
     },
-    "typeRoots": [
-      "./node_modules",
-      "./node_modules/@rancher/shell/types"
-    ],
-    "types": [
-      "@types/node",
-      "cypress",
-      "rancher",
-      "shell"
-    ]
+    "typeRoots": ["./node_modules", "./node_modules/@rancher/shell/types"],
+    "types": ["@types/node", "cypress", "rancher", "shell"]
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

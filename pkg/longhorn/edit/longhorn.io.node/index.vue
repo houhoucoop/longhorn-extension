@@ -1,22 +1,22 @@
 <script>
-import Loading from "@shell/components/Loading";
-import CruResource from "@shell/components/CruResource";
-import NameNsDescription from "@shell/components/form/NameNsDescription";
-import Tabbed from "@shell/components/Tabbed";
-import Tab from "@shell/components/Tabbed/Tab";
-import CreateEditView from "@shell/mixins/create-edit-view";
-import FormValidation from "@shell/mixins/form-validation";
-import { _EDIT, _VIEW } from "@shell/config/query-params";
-import { LONGHORN_NAMESPACE } from "@longhorn/types/longhorn";
-import { exceptionToErrorsArray } from "@shell/utils/error";
-import { get } from "@shell/utils/object";
-import { randomStr } from "@shell/utils/string";
+import Loading from '@shell/components/Loading';
+import CruResource from '@shell/components/CruResource';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+import Tabbed from '@shell/components/Tabbed';
+import Tab from '@shell/components/Tabbed/Tab';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
+import { exceptionToErrorsArray } from '@shell/utils/error';
+import { get } from '@shell/utils/object';
+import { randomStr } from '@shell/utils/string';
 
-import Basics from "./Basics";
-import Disks from "./Disks";
+import Basics from './Basics';
+import Disks from './Disks';
 
 export default {
-  name: "EditNode",
+  name: 'EditNode',
   components: {
     Loading,
     CruResource,
@@ -49,33 +49,33 @@ export default {
       return {
         basics: [
           {
-            key: "instanceManagerCPURequest",
-            path: "spec.instanceManagerCPURequest",
-            rules: ["requiredInt", "isInteger", "isPositive"],
-            translationKey: "longhorn.node.form.instanceManagerCPURequest",
+            key: 'instanceManagerCPURequest',
+            path: 'spec.instanceManagerCPURequest',
+            rules: ['requiredInt', 'isInteger', 'isPositive'],
+            translationKey: 'longhorn.node.form.instanceManagerCPURequest',
           },
         ],
         disks: disks.flatMap((disk) => [
           {
             key: disk.id,
-            field: "name",
+            field: 'name',
             path: `spec.disks.${disk.id}.name`,
-            rules: ["required", "diskNameUnique"],
-            translationKey: "longhorn.node.form.name",
+            rules: ['required', 'diskNameUnique'],
+            translationKey: 'longhorn.node.form.name',
           },
           {
             key: disk.id,
-            field: "path",
+            field: 'path',
             path: `spec.disks.${disk.id}.path`,
-            rules: ["required"],
-            translationKey: "longhorn.node.form.diskPath",
+            rules: ['required'],
+            translationKey: 'longhorn.node.form.diskPath',
           },
           {
             key: disk.id,
-            field: "storageReserved",
+            field: 'storageReserved',
             path: `spec.disks.${disk.id}.storageReserved`,
-            rules: ["requiredInt", "isInteger", "isPositive"],
-            translationKey: "longhorn.node.form.storageReserved",
+            rules: ['requiredInt', 'isInteger', 'isPositive'],
+            translationKey: 'longhorn.node.form.storageReserved',
           },
         ]),
       };
@@ -85,10 +85,9 @@ export default {
       return {
         diskNameUnique: (val) => {
           const disks = Object.values(this.value.spec?.disks || {});
+
           return disks.filter((d) => d.name === val).length > 1
-            ? this.t("validation.duplicate", {
-                key: this.t("longhorn.node.form.name"),
-              })
+            ? this.t('validation.duplicate', { key: this.t('longhorn.node.form.name') })
             : undefined;
         },
       };
@@ -100,7 +99,7 @@ export default {
           const val = get(this.value, f.path);
           const rules = this.fvGetPathRules(f.path) || [];
 
-          return rules.some((rule) => typeof rule(val) === "string");
+          return rules.some((rule) => typeof rule(val) === 'string');
         });
 
       return {
@@ -124,6 +123,7 @@ export default {
       return this.validationSchema.disks.reduce((acc, f) => {
         acc[f.key] = acc[f.key] || {};
         acc[f.key][f.field] = this.fvGetAndReportPathRules(f.path);
+
         return acc;
       }, {});
     },
@@ -133,8 +133,8 @@ export default {
 
     diskConditions() {
       return (this.value.disks || []).reduce((acc, disk) => {
-        if (disk.id && disk.conditions)
-          acc[disk.id] = this.mapConditions(disk.conditions);
+        if (disk.id && disk.conditions) acc[disk.id] = this.mapConditions(disk.conditions);
+
         return acc;
       }, {});
     },
@@ -143,28 +143,23 @@ export default {
   methods: {
     mapConditions(conditions = []) {
       return (Array.isArray(conditions) ? conditions : []).map((c) => {
-        const isError = c.error || c.status === "False";
-        const isSuccess = c.status === "True" && !isError;
+        const isError = c.error || c.status === 'False';
+        const isSuccess = c.status === 'True' && !isError;
+
         return {
           key: c.type,
           tooltip: c.message,
           value: {
             stateBackground: isError
-              ? "bg-error"
+              ? 'bg-error'
               : c.transitioning
-              ? "bg-warning"
-              : isSuccess
-              ? "bg-success"
-              : "bg-info",
+                ? 'bg-warning'
+                : isSuccess
+                  ? 'bg-success'
+                  : 'bg-info',
             stateDisplay: c.type,
           },
-          icon: isError
-            ? "icon-error"
-            : c.transitioning
-            ? "icon-warning"
-            : isSuccess
-            ? "icon-checkmark"
-            : "icon-info",
+          icon: isError ? 'icon-error' : c.transitioning ? 'icon-warning' : isSuccess ? 'icon-checkmark' : 'icon-info',
         };
       });
     },
@@ -175,14 +170,15 @@ export default {
         id,
         name: id,
         isNew: true,
-        path: "",
+        path: '',
         storageReserved: 0,
         allowScheduling: false,
         evictionRequested: false,
-        diskDriver: "",
-        diskType: "filesystem",
+        diskDriver: '',
+        diskType: 'filesystem',
         tags: [],
       };
+
       this.value.spec.disks = {
         ...(this.value.spec.disks || {}),
         [id]: newDisk,
@@ -190,8 +186,9 @@ export default {
     },
 
     removeDisk(id) {
-      const diskId = typeof id === "string" ? id : id?.id;
+      const diskId = typeof id === 'string' ? id : id?.id;
       const { [diskId]: _, ...remainingDisks } = this.value.spec?.disks || {};
+
       if (diskId) this.value.spec.disks = remainingDisks;
     },
 
@@ -228,16 +225,14 @@ export default {
       deep: true,
     },
 
-    "value.spec.disks": {
+    'value.spec.disks': {
       handler(neu) {
         if (!neu) return;
         let hasChanged = false;
         const disks = { ...neu };
+
         for (const id in disks) {
-          if (
-            !disks[id].hasOwnProperty("name") ||
-            disks[id].isNew === undefined
-          ) {
+          if (!Object.prototype.hasOwnProperty.call(disks[id], 'name') || disks[id].isNew === undefined) {
             disks[id] = {
               ...disks[id],
               name: disks[id].name || id,
@@ -267,32 +262,14 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <NameNsDescription
-        :value="value"
-        :mode="mode"
-        :namespaced="false"
-        :force-namespace="LONGHORN_NAMESPACE"
-      />
+      <NameNsDescription :value="value" :mode="mode" :namespaced="false" :force-namespace="LONGHORN_NAMESPACE" />
 
-      <Tabbed sideTabs :resource="value">
-        <Tab
-          name="basics"
-          labelKey="longhorn.node.tab.basics"
-          :error="tabErrors.basics"
-        >
-          <Basics
-            :mode="mode"
-            :value="value"
-            :conditions="nodeConditions"
-            :rules="basicValidationRules"
-          />
+      <Tabbed side-tabs :resource="value">
+        <Tab name="basics" label-key="longhorn.node.tab.basics" :error="tabErrors.basics">
+          <Basics :mode="mode" :value="value" :conditions="nodeConditions" :rules="basicValidationRules" />
         </Tab>
 
-        <Tab
-          name="disk"
-          labelKey="longhorn.node.tab.disks"
-          :error="tabErrors.disks"
-        >
+        <Tab name="disk" label-key="longhorn.node.tab.disks" :error="tabErrors.disks">
           <Disks
             :mode="mode"
             :value="value"

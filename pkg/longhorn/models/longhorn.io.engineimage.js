@@ -1,6 +1,6 @@
-import LonghornModel from "./longhorn";
-import { AVAILABLE_ACTIONS } from "@longhorn/types/longhorn";
-import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from "@longhorn/types/resources";
+import LonghornModel from './longhorn';
+import { AVAILABLE_ACTIONS } from '@longhorn/types/longhorn';
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 
 export default class EngineImageModel extends LonghornModel {
   get availableActions() {
@@ -10,6 +10,7 @@ export default class EngineImageModel extends LonghornModel {
         if (action.action === AVAILABLE_ACTIONS.DELETE) {
           return { ...action, enabled: !this.isDefault };
         }
+
         return action;
       });
 
@@ -17,19 +18,17 @@ export default class EngineImageModel extends LonghornModel {
   }
 
   get image() {
-    return this.spec.image
+    return this.spec.image;
   }
 
   get isDefault() {
-    const defaultEngineImageSetting = this.$getters?.["byId"]?.(
+    const defaultEngineImageSetting = this.$getters?.['byId']?.(
       LONGHORN_RESOURCES.SETTINGS,
       LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE
     );
 
     const defaultEngineImage = defaultEngineImageSetting?.value;
 
-    return this.spec?.image && defaultEngineImage
-      ? this.spec.image === defaultEngineImage
-      : false;
+    return this.spec?.image && defaultEngineImage ? this.spec.image === defaultEngineImage : false;
   }
 }

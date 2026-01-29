@@ -1,8 +1,8 @@
-import { CoreStoreSpecifics, CoreStoreConfig } from "@shell/core/types";
-import getters from "./getters";
-import mutations from "./mutations";
-import actions from "./actions";
-import { PRODUCT_NAME } from "@longhorn/types/longhorn";
+import { CoreStoreSpecifics, CoreStoreConfig } from '@shell/core/types';
+import getters from './getters';
+import mutations from './mutations';
+import actions from './actions';
+import { PRODUCT_NAME } from '@longhorn/types/longhorn';
 
 const longhornFactory = (): CoreStoreSpecifics => {
   return {
@@ -10,23 +10,15 @@ const longhornFactory = (): CoreStoreSpecifics => {
       return {};
     },
 
-    getters: {
-      ...getters,
-    },
+    getters: { ...getters },
 
-    mutations: {
-      ...mutations,
-    },
+    mutations: { ...mutations },
 
-    actions: {
-      ...actions,
-    },
+    actions: { ...actions },
   };
 };
 
-const config: CoreStoreConfig = {
-  namespace: PRODUCT_NAME,
-};
+const config: CoreStoreConfig = { namespace: PRODUCT_NAME };
 
 export default {
   specifics: longhornFactory(),

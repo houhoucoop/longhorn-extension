@@ -10,15 +10,9 @@ import { Banner } from '@components/Banner';
 const store = useStore();
 
 const configValues = reactive({
-  api: {
-    ttl: 3600
-  },
-  cluster: {
-    nodeTaints: [],
-  },
-  system: {
-    registry: 'docker.io'
-  }
+  api: { ttl: 3600 },
+  cluster: { nodeTaints: [] },
+  system: { registry: 'docker.io' },
 });
 
 const settingsMetaData = ref({
@@ -36,8 +30,8 @@ const settingsMetaData = ref({
   'system-default-registry': {
     type: 'string',
     path: 'system.registry',
-    class: 'span-8'
-  }
+    class: 'span-8',
+  },
 });
 
 const settingsGroups = ref([
@@ -45,20 +39,20 @@ const settingsGroups = ref([
     name: 'general',
     expanded: true,
     children: ['api-ttl'],
-    weight: 0
+    weight: 0,
   },
   {
     name: 'dangerZone',
     children: ['node-taints', 'system-default-registry'],
-    weight: 1
-  }
+    weight: 1,
+  },
 ]);
 
 const isLoading = ref(true);
 const loadError = ref(null);
 
 const inStore = computed(() => {
-  return store.getters["currentProduct"].inStore;
+  return store.getters['currentProduct'].inStore;
 });
 
 async function fetchData() {
@@ -66,24 +60,20 @@ async function fetchData() {
   loadError.value = null;
 
   if (!inStore.value) {
-      loadError.value = new Error("Vuex store namespace not found.");
-      isLoading.value = false;
-      return;
+    loadError.value = new Error('Vuex store namespace not found.');
+    isLoading.value = false;
+
+    return;
   }
 
   try {
-    const hash = {
-      settings: store.dispatch(`${inStore.value}/findAll`, {
-          type: LONGHORN_RESOURCES.SETTINGS
-      }),
-    };
+    const hash = { settings: store.dispatch(`${inStore.value}/findAll`, { type: LONGHORN_RESOURCES.SETTINGS }) };
 
-    const res = await allHash(hash);
+    await allHash(hash);
 
-    console.log('Fetched settings data:', res.settings);
-
+    // console.log('Fetched settings data:', res.settings);
   } catch (e) {
-    console.error(`Failed to fetch Longhorn settings:`, e);
+    // console.error(`Failed to fetch Longhorn settings:`, e);
     loadError.value = e;
   } finally {
     isLoading.value = false;
@@ -96,14 +86,14 @@ onMounted(() => {
 
 function handleUpdate(newValues) {
   Object.assign(configValues, newValues);
-  console.log('Configuration updated:', newValues);
+  // console.log('Configuration updated:', newValues);
 }
 </script>
 
 <template>
   <div class="outlet">
     <Banner v-if="loadError" color="error">
-        {{ t('longhorn.settings.fetchError', { error: loadError.message }) }}
+      {{ t('longhorn.settings.fetchError', { error: loadError.message }) }}
     </Banner>
 
     <Loading v-else-if="isLoading" />
@@ -121,6 +111,4 @@ function handleUpdate(newValues) {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

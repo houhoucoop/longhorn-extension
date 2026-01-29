@@ -19,6 +19,7 @@ export function bytesToGi(bytes) {
     if (formattedValue > 0 && formattedValue < 0.01) {
       return 0.01;
     }
+
     return formattedValue;
   }
 

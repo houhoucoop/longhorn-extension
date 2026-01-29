@@ -21,9 +21,27 @@
     "build-pkg": "./node_modules/@rancher/shell/scripts/build-pkg.sh",
     "serve-pkgs": "./node_modules/@rancher/shell/scripts/serve-pkgs",
     "publish-pkgs": "./node_modules/@rancher/shell/scripts/extension/publish",
-    "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name"
+    "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name",
+    "format": "prettier --write \"**/*.{js,ts,vue,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,vue,json,md}\"",
+    "lint": "eslint \"pkg/longhorn/**/*.{js,ts,vue}\"",
+    "lint:fix": "eslint \"pkg/longhorn/**/*.{js,ts,vue}\" --fix"
   },
   "devDependencies": {
-    "@types/lodash": "^4.17.21"
+    "@types/lodash": "^4.17.21",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "@vue/eslint-config-standard": "^6.1.0",
+    "@vue/eslint-config-typescript": "^11.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-cypress": "^2.12.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-promise": "^5.0.0",
+    "eslint-plugin-vue": "^9.32.0",
+    "prettier": "^3.0.0"
   }
 }

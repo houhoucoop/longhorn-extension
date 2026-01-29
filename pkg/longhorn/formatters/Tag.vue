@@ -1,5 +1,5 @@
 <script setup>
-import Tag from "@shell/components/Tag";
+import Tag from '@shell/components/Tag';
 
 const props = defineProps({
   value: {

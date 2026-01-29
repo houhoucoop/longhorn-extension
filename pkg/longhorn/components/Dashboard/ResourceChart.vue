@@ -1,26 +1,23 @@
 <script setup>
-import { ref, computed } from "vue";
-import { useStore } from "vuex";
-import { useI18n } from "@shell/composables/useI18n";
-import SemiDoughnut from "@longhorn/components/Charts/SemiDoughnut";
-import {
-  useTooltip,
-  formatTooltipContent,
-} from "@longhorn/components/Charts/composable";
-import Link from "@shell/components/formatter/Link";
+import { ref, computed } from 'vue';
+import { useStore } from 'vuex';
+import { useI18n } from '@shell/composables/useI18n';
+import SemiDoughnut from '@longhorn/components/Charts/SemiDoughnut';
+import { useTooltip, formatTooltipContent } from '@longhorn/components/Charts/composable';
+import Link from '@shell/components/formatter/Link';
 
 const props = defineProps({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   chartData: {
     type: Object,
-    required: true
+    required: true,
   },
   horizontal: {
     type: Boolean,
-    default: false
+    default: false,
   },
 });
 
@@ -29,18 +26,15 @@ const { showTooltip, hideTooltip } = useTooltip();
 
 const activeIndex = ref(null);
 
-const dataset = computed(
-  () => props.chartData.datasets?.[0] ?? { data: [], backgroundColor: [] }
-);
+const dataset = computed(() => props.chartData.datasets?.[0] ?? { data: [], backgroundColor: [] });
 
 const isLinkableResource = computed(() =>
-  ["longhorn.dashboard.node.title", "longhorn.dashboard.volume.title"].includes(
-    props.chartData.resourceNameKey
-  )
+  ['longhorn.dashboard.node.title', 'longhorn.dashboard.volume.title'].includes(props.chartData.resourceNameKey)
 );
 
 const total = computed(() => {
   const sum = dataset.value.data.reduce((a, b) => a + b, 0);
+
   return Math.round(sum * 100) / 100;
 });
 
@@ -54,11 +48,7 @@ const rows = computed(() =>
       key: label,
       label,
       value,
-      displayValue: isEmpty
-        ? "-"
-        : props.chartData.suffix
-        ? `${value} ${props.chartData.suffix}`
-        : `${value}`,
+      displayValue: isEmpty ? '-' : props.chartData.suffix ? `${value} ${props.chartData.suffix}` : `${value}`,
       isEmpty,
       isLinkable,
       color: dataset.value.backgroundColor[index],
@@ -69,11 +59,8 @@ const rows = computed(() =>
 const totalRow = computed(() => ({
   label: t('longhorn.dashboard.total'),
   isEmpty: total.value === 0,
-  displayValue: props.chartData.suffix
-    ? `${total.value} ${props.chartData.suffix}`
-    : `${total.value}`,
+  displayValue: props.chartData.suffix ? `${total.value} ${props.chartData.suffix}` : `${total.value}`,
 }));
-
 
 function handleRowEnter(row, index, event) {
   if (row.isEmpty) return;
@@ -105,11 +92,11 @@ function handleRowLeave() {
     <div class="split-container" :class="{ horizontal }">
       <div class="chart-panel">
         <SemiDoughnut
+          v-model:active-index="activeIndex"
           :labels="chartData.labels"
           :datasets="chartData.datasets"
           :suffix="chartData.suffix"
-          :resourceNameKey="chartData.resourceNameKey"
-          v-model:activeIndex="activeIndex"
+          :resource-name-key="chartData.resourceNameKey"
         />
       </div>
 
@@ -131,11 +118,7 @@ function handleRowLeave() {
               'secondary-text-link': row.isLinkable,
               'text-secondary': row.isEmpty,
             }"
-            v-bind="
-              row.isLinkable
-                ? { value: row.label, options: { internal: true } }
-                : {}
-            "
+            v-bind="row.isLinkable ? { value: row.label, options: { internal: true } } : {}"
           >
             <template v-if="!row.isLinkable">
               {{ row.label }}
@@ -150,17 +133,11 @@ function handleRowLeave() {
         <div class="metrics-row total-row">
           <div class="metrics-status" />
 
-          <div
-            class="metrics-label"
-            :class="{ 'text-secondary': totalRow.isEmpty }"
-          >
+          <div class="metrics-label" :class="{ 'text-secondary': totalRow.isEmpty }">
             {{ totalRow.label }}
           </div>
 
-          <div
-            class="metrics-value"
-            :class="{ 'text-secondary': totalRow.isEmpty }"
-          >
+          <div class="metrics-value" :class="{ 'text-secondary': totalRow.isEmpty }">
             {{ totalRow.displayValue }}
           </div>
         </div>
@@ -248,7 +225,7 @@ function handleRowLeave() {
   color: var(--link-text-secondary);
 }
 
-@media (min-width: map-get($breakpoints, "--viewport-9")) {
+@media (min-width: map-get($breakpoints, '--viewport-9')) {
   .split-container {
     flex-direction: column;
 
@@ -259,13 +236,13 @@ function handleRowLeave() {
   }
 }
 
-@media (min-width: map-get($breakpoints, "--viewport-12")) {
+@media (min-width: map-get($breakpoints, '--viewport-12')) {
   .split-container {
     flex-direction: column;
   }
 }
 
-@media (min-width: "1600px") {
+@media (min-width: '1600px') {
   .split-container {
     flex-direction: column;
 
@@ -276,7 +253,7 @@ function handleRowLeave() {
   }
 }
 
-@media (min-width: "2000px") {
+@media (min-width: '2000px') {
   .split-container {
     flex-direction: row;
   }
