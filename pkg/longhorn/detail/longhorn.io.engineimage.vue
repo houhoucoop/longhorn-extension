@@ -1,4 +1,6 @@
-<script>
+<script setup>
+import { computed, useFetch } from 'vue';
+import { useStore } from 'vuex';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabelValue from '@shell/components/LabelValue';
@@ -8,70 +10,49 @@ import { _VIEW } from '@shell/config/query-params';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 
-export default {
-  name: 'DetailEngineImage',
-
-  components: {
-    Loading,
-    NameNsDescription,
-    Tabbed,
-    Tab,
-    LabelValue,
+const props = defineProps({
+  mode: {
+    type: String,
+    default: _VIEW,
   },
-
-  props: {
-    mode: {
-      type: String,
-      default: _VIEW,
-    },
-    value: {
-      type: Object,
-      required: false,
-      default: () => ({}),
-    },
+  value: {
+    type: Object,
+    required: false,
+    default: () => ({}),
   },
+});
 
-  async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
+const store = useStore();
 
-    await this.$store.dispatch(`${inStore}/find`, {
-      type: LONGHORN_RESOURCES.SETTINGS,
-      id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
-    });
-  },
+const { pending: fetchStatePending } = useFetch(async () => {
+  const inStore = store.getters['currentProduct'].inStore;
 
-  data() {
-    return {
-      LONGHORN_NAMESPACE,
-      _VIEW,
-    };
-  },
+  await store.dispatch(`${inStore}/find`, {
+    type: LONGHORN_RESOURCES.SETTINGS,
+    id: LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE,
+  });
+});
 
-  computed: {
-    nodeDeploymentMap() {
-      const map = this.value?.status?.nodeDeploymentMap;
+const nodeDeploymentMap = computed(() => {
+  const map = props.value?.status?.nodeDeploymentMap;
 
-      if (!map) return '-';
+  if (!map) return '-';
 
-      const result = Object.entries(map)
-        .filter(([, val]) => val === true)
-        .map(([key]) => key)
-        .join(', ');
+  const result = Object.entries(map)
+    .filter(([, val]) => val === true)
+    .map(([key]) => key)
+    .join(', ');
 
-      return this.displayValue(result);
-    },
-  },
+  return displayValue(result);
+});
 
-  methods: {
-    displayValue(val) {
-      return val === null || val === undefined || String(val).trim() === '' ? '-' : val;
-    },
-  },
-};
+function displayValue(val) {
+  return val === null || val === undefined || String(val).trim() === '' ? '-' : val;
+}
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="fetchStatePending" />
   <div v-else>
     <NameNsDescription
       :value="value"

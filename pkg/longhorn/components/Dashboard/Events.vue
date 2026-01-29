@@ -1,11 +1,12 @@
-<script>
-import { defineComponent } from 'vue';
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter, useRoute } from 'vue-router';
 import { MESSAGE, NAME, OBJECT, REASON, EVENT_TYPE } from '@shell/config/table-headers';
 import { EVENT } from '@shell/config/types';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { STEVE_NAME_COL } from '@shell/config/pagination-table-headers';
 import { headerFromSchemaColString } from '@shell/store/type-map.utils';
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
 
 const reason = {
   ...REASON,
@@ -29,92 +30,73 @@ const eventHeaders = [
   },
 ];
 
-export default defineComponent({
-  name: 'LonghornEvents',
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
 
-  components: { PaginatedResourceTable },
-
-  data() {
-    return {
-      schema: null,
-      events: [],
-      eventHeaders,
-      paginationHeaders: null,
-      dismissRouteHandler: () => {
-        // Handler for dismiss route
-      },
-      allEventsLink: {
-        name: 'c-cluster-product-resource',
-        params: {
-          product: EXPLORER,
-          resource: EVENT,
-        },
-      },
-    };
-  },
-
-  beforeMount() {
-    const schema = this.$store.getters['cluster/schemaFor'](EVENT);
-
-    const paginationHeaders = schema
-      ? [
-          {
-            ...headerFromSchemaColString('Last Seen', schema, this.$store.getters, true),
-            defaultSort: true,
-          },
-          headerFromSchemaColString('First Seen', schema, this.$store.getters, true),
-          headerFromSchemaColString('Count', schema, this.$store.getters, true),
-          {
-            ...STEVE_NAME_COL,
-            defaultSort: false,
-          },
-          OBJECT,
-          EVENT_TYPE,
-          reason,
-          headerFromSchemaColString('Source', schema, this.$store.getters, true),
-          MESSAGE,
-        ]
-      : [];
-
-    this.schema = schema;
-    this.paginationHeaders = paginationHeaders;
-  },
-
-  mounted() {
-    this.dismissRouteHandler = this.$router.beforeEach((to, from, next) => this.onRouteChange(to, from, next));
-  },
-
-  beforeUnmount() {
-    if (this.dismissRouteHandler) this.dismissRouteHandler();
-  },
-
-  methods: {
-    async onRouteChange(to, from, next) {
-      if (this.$route.name !== to.name) {
-        await this.$store.dispatch('cluster/forgetType', EVENT);
-      }
-      next();
-    },
-
-    onApiFilter(pagination) {
-      if (!pagination.projectsOrNamespaces || !pagination.projectsOrNamespaces[0]) {
-        pagination.projectsOrNamespaces = [{ fields: [] }];
-      }
-
-      pagination.projectsOrNamespaces[0].fields = [
-        {
-          equals: true,
-          exact: true,
-          exists: false,
-          field: undefined,
-          value: 'longhorn-system',
-        },
-      ];
-
-      return pagination;
-    },
-  },
+const schema = ref(null);
+const paginationHeaders = ref(null);
+const dismissRouteHandler = ref(() => {
+  // Handler for dismiss route
 });
+
+onMounted(() => {
+  const schemaObj = store.getters['cluster/schemaFor'](EVENT);
+
+  const paginationHeadersObj = schemaObj
+    ? [
+        {
+          ...headerFromSchemaColString('Last Seen', schemaObj, store.getters, true),
+          defaultSort: true,
+        },
+        headerFromSchemaColString('First Seen', schemaObj, store.getters, true),
+        headerFromSchemaColString('Count', schemaObj, store.getters, true),
+        {
+          ...STEVE_NAME_COL,
+          defaultSort: false,
+        },
+        OBJECT,
+        EVENT_TYPE,
+        reason,
+        headerFromSchemaColString('Source', schemaObj, store.getters, true),
+        MESSAGE,
+      ]
+    : [];
+
+  schema.value = schemaObj;
+  paginationHeaders.value = paginationHeadersObj;
+
+  dismissRouteHandler.value = router.beforeEach((to, from, next) => onRouteChange(to, from, next));
+});
+
+onBeforeUnmount(() => {
+  if (dismissRouteHandler.value) dismissRouteHandler.value();
+});
+
+async function onRouteChange(to, from, next) {
+  if (route.name !== to.name) {
+    await store.dispatch('cluster/forgetType', EVENT);
+  }
+  next();
+}
+
+function onApiFilter(pagination) {
+  if (!pagination.projectsOrNamespaces || !pagination.projectsOrNamespaces[0]) {
+    pagination.projectsOrNamespaces = [{ fields: [] }];
+  }
+
+  pagination.projectsOrNamespaces[0].fields = [
+    {
+      equals: true,
+      exact: true,
+      exists: false,
+      field: undefined,
+      value: 'longhorn-system',
+    },
+  ];
+
+  return pagination;
+}
 </script>
 
 <template>
