@@ -1,4 +1,4 @@
-import { PRODUCT_NAME, LONGHORN_PAGES, LONGHORN_GROUP } from '@longhorn/types/longhorn';
+import { PRODUCT_NAME, LONGHORN_PAGES, LONGHORN_GROUP, LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import {
   ENGINE_IMAGES_HEADER,
@@ -23,6 +23,7 @@ export function init($plugin: any, store: any) {
     icon: 'longhorn',
     inStore: 'cluster',
     inExplorer: false,
+    namespace: LONGHORN_NAMESPACE,
   });
 
   // ----- Pages ----- //
@@ -107,7 +108,7 @@ export function init($plugin: any, store: any) {
     LONGHORN_PAGES.DASHBOARD,
     LONGHORN_RESOURCES.NODES,
     LONGHORN_RESOURCES.RECURRING_JOBS,
-    // LONGHORN_PAGES.SETTINGS,
+    LONGHORN_PAGES.SETTINGS,
   ]);
   basicType(
     [

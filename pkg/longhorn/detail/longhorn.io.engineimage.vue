@@ -1,13 +1,13 @@
 <script setup>
-import { computed, useFetch } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { useFetch } from '@shell/components/Resource/Detail/FetchLoader/composables';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabelValue from '@shell/components/LabelValue';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { _VIEW } from '@shell/config/query-params';
-import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 
 const props = defineProps({
@@ -60,7 +60,6 @@ function displayValue(val) {
       :namespace-disabled="true"
       :name-hidden="mode !== _VIEW"
       :description-hidden="true"
-      :force-namespace="LONGHORN_NAMESPACE"
     />
     <Tabbed side-tabs :resource="value">
       <Tab name="basics" label-key="longhorn.engineImage.tab.basics">

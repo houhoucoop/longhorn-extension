@@ -7,7 +7,6 @@ import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { randomStr } from '@shell/utils/string';
@@ -36,7 +35,6 @@ export default {
   data() {
     return {
       _VIEW,
-      LONGHORN_NAMESPACE,
       fvFormRuleSets: [],
       fvReportedValidationPaths: [],
     };
@@ -262,7 +260,7 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <NameNsDescription :value="value" :mode="mode" :namespaced="false" :force-namespace="LONGHORN_NAMESPACE" />
+      <NameNsDescription :value="value" :mode="mode" :namespaced="false" />
 
       <Tabbed side-tabs :resource="value">
         <Tab name="basics" label-key="longhorn.node.tab.basics" :error="tabErrors.basics">

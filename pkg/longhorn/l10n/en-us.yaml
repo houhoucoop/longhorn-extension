@@ -1,14 +1,14 @@
 generic:
   enable: Enable
   disabled: Disabled
-  trueOption: "True"
-  falseOption: "False"
+  trueOption: 'True'
+  falseOption: 'False'
   edit: Edit
 validation:
   field: Field
-  duplicate: "{key} must be unique"
+  duplicate: '{key} must be unique'
 error:
-  fetchError: "Error loading data: {message}"
+  fetchError: 'Error loading data: {message}'
 longhorn:
   dashboard:
     title: Dashboard
@@ -78,7 +78,7 @@ longhorn:
   recurringJob:
     tab:
       basics: Basics
-      labels: "Groups & Labels"
+      labels: 'Groups & Labels'
     table:
       header:
         task: Task
@@ -109,7 +109,7 @@ longhorn:
         lastSyncedAt: Last Synced At
     form:
       pollInterval:
-        tooltip:  Set 0 to disable the polling
+        tooltip: Set 0 to disable the polling
   engineImage:
     title: Engine Image
     table:
@@ -135,10 +135,5 @@ longhorn:
         imageRequired: Image is required.
   settings:
     title: Settings
-    fetchError: "Failed to load settings from Longhorn API. Details: %{error}"
-    general:
-      label: general
-      description: Manage the basic configuration for this feature.
-    dangerZone:
-      label: Danger Zone
-      description: Advanced settings that may affect system stability, proceed with caution.
+    fetchError: 'Failed to load settings from Longhorn API. Details: %{error}'
+    apply: Apply Changes
