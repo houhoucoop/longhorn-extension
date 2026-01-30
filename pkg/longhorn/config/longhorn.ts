@@ -31,13 +31,14 @@ export function init($plugin: any, store: any) {
   virtualType({
     name: LONGHORN_PAGES.DASHBOARD,
     route: {
-      name: `c-cluster-${PRODUCT_NAME}`,
+      name: `c-cluster-${PRODUCT_NAME}-dashboard`,
       params: { product: PRODUCT_NAME },
       meta: {
         pkg: PRODUCT_NAME,
         product: PRODUCT_NAME,
       },
     },
+    exact: true,
   });
 
   // Nodes
