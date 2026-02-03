@@ -1,5 +1,4 @@
 <script>
-import { allHash } from '@shell/utils/promise';
 import { proxyUrlFromParts } from '@shell/models/service';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
@@ -18,15 +17,56 @@ export default {
     SettingsForm,
   },
 
+  props: {
+    resource: {
+      type: String,
+      required: true,
+    },
+    schema: {
+      type: Object,
+      required: true,
+    },
+  },
+
+  async fetch() {
+    const clusterId = this.$route.params.cluster;
+    const proxyUrl = proxyUrlFromParts(
+      clusterId,
+      LONGHORN_NAMESPACE,
+      'longhorn-frontend',
+      'http',
+      '80',
+      '/v1/settings'
+    );
+
+    try {
+      // Load resources
+      await this.$store.dispatch(`${this.inStore}/findAll`, { type: LONGHORN_RESOURCES.SETTINGS });
+      const settingsApi = await this.$store.dispatch(`${this.inStore}/request`, { url: proxyUrl });
+
+      console.log('Settings API response:', settingsApi);
+      console.log('Rows from store:', this.rows);
+
+      if (settingsApi?.data) {
+        this.settingsApiData = settingsApi.data;
+        this.processSettings();
+      }
+    } catch (e) {
+      console.error('Fetch error:', e);
+      this.loadError = e;
+    }
+  },
+
   data() {
     return {
       settings: {},
       groups: [],
       values: {},
-      isLoading: true,
       loadError: null,
       errors: [],
-      originalData: [],
+      settingsApiData: [],
+      originalValues: {}, // Store original values for comparison
+      resourceMap: {}, // Map setting ID to resource for save
     };
   },
 
@@ -35,58 +75,39 @@ export default {
       return this.$store.getters['currentProduct'].inStore;
     },
 
+    rows() {
+      if (!this.inStore) {
+        return [];
+      }
+
+      const getter = this.$store.getters[`${this.inStore}/all`];
+
+      return typeof getter === 'function' ? getter(this.resource) || [] : [];
+    },
+
     canEdit() {
-      return !this.isLoading && !this.loadError;
+      return !this.$fetchState.pending && !this.loadError;
     },
   },
 
-  mounted() {
-    this.fetchData();
+  watch: {
+    rows() {
+      this.processSettings();
+    },
   },
 
   methods: {
-    async fetchData() {
-      this.isLoading = true;
-      this.loadError = null;
+    processSettings() {
+      console.log('processSettings called');
+      console.log('settingsApiData:', this.settingsApiData);
+      console.log('rows:', this.rows);
 
-      if (!this.inStore) {
-        this.loadError = new Error('Vuex store namespace not found.');
-        this.isLoading = false;
+      if (!this.settingsApiData.length || !this.rows.length) {
+        console.log('Early return: settingsApiData or rows is empty');
 
         return;
       }
 
-      try {
-        const clusterId = this.$route.params.cluster;
-        const proxyUrl = proxyUrlFromParts(
-          clusterId,
-          LONGHORN_NAMESPACE,
-          'longhorn-frontend',
-          'http',
-          '80',
-          '/v1/settings'
-        );
-
-        const hash = {
-          settings: this.$store.dispatch(`${this.inStore}/findAll`, { type: LONGHORN_RESOURCES.SETTINGS }),
-          settingsApi: this.$store.dispatch(`${this.inStore}/request`, { url: proxyUrl }),
-        };
-
-        const res = await allHash(hash);
-
-        // Process API response
-        if (res.settingsApi?.data && res.settings) {
-          this.originalData = res.settings;
-          this.processSettings(res.settingsApi.data, res.settings);
-        }
-      } catch (e) {
-        this.loadError = e;
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    processSettings(settingsArray, settingsResources) {
       const categoryMap = {};
       const settings = {};
       const values = {};
@@ -95,14 +116,29 @@ export default {
       // Create a map of settings resources by id for quick lookup
       const settingsResourceMap = {};
 
-      settingsResources.forEach((resource) => {
+      this.rows.forEach((resource) => {
+        console.log('Resource ID:', resource.id, 'Name:', resource.metadata?.name);
         settingsResourceMap[resource.id] = resource;
+        // Also map by name without namespace prefix
+        if (resource.metadata?.name) {
+          settingsResourceMap[resource.metadata.name] = resource;
+        }
       });
 
-      settingsArray.forEach((setting) => {
+      this.settingsApiData.forEach((setting) => {
         const { id, definition } = setting;
-        // Get value from settings resource
-        const resource = settingsResourceMap[id];
+
+        console.log('Processing setting ID:', id);
+        // Get value from settings resource - try both formats
+        const resource = settingsResourceMap[id] || this.rows.find((r) => r.id === id || r.metadata?.name === id);
+
+        console.log('Found resource for', id, ':', !!resource);
+
+        // Store resource mapping for save operation
+        if (resource) {
+          this.resourceMap[id] = resource;
+        }
+
         const value = resource?.value || setting.value;
         const { category, type, displayName, description, readOnly, required, options } = definition;
 
@@ -184,6 +220,7 @@ export default {
       this.settings = settings;
       this.groups = groups;
       this.values = values;
+      this.originalValues = { ...values }; // Store original values for comparison
     },
 
     parseValue(value, type) {
@@ -202,6 +239,20 @@ export default {
     },
 
     handleUpdate(newValues) {
+      // Update resource values directly
+      Object.keys(newValues).forEach((settingId) => {
+        const newValue = newValues[settingId];
+        const resource = this.resourceMap[settingId];
+
+        if (resource) {
+          const type = this.settings[settingId]?.type || 'string';
+
+          resource.value = this.stringifyValue(newValue, type);
+          console.log(`Updated ${settingId} (${type}):`, { newValue, stringified: resource.value });
+        }
+      });
+
+      // Also update local values for reactivity
       this.values = newValues;
     },
 
@@ -211,38 +262,42 @@ export default {
       try {
         const updates = [];
 
-        // Build update requests for changed settings
+        console.log('Save called');
+        console.log('Current values:', this.values);
+        console.log('Original values:', this.originalValues);
+        console.log('Resource map keys:', Object.keys(this.resourceMap));
+
+        // Save all changed resources
         Object.keys(this.values).forEach((settingId) => {
-          const newValue = this.values[settingId];
-          const originalSetting = this.originalData.find((s) => s.id === settingId);
-          const originalValue = this.parseValue(originalSetting?.value, originalSetting?.definition?.type);
+          const currentValue = this.values[settingId];
+          const originalValue = this.originalValues[settingId];
+          const resource = this.resourceMap[settingId];
 
-          // Only update if value changed
-          if (newValue !== originalValue) {
-            const resource = this.originalData.find((s) => s.id === settingId);
+          console.log(`Checking ${settingId}:`, {
+            current: currentValue,
+            original: originalValue,
+            changed: JSON.stringify(currentValue) !== JSON.stringify(originalValue),
+            hasResource: !!resource,
+          });
 
-            if (resource) {
-              // Get the definition to determine the type
-              const type = resource.spec?.definition?.type || 'string';
-
-              // Clone the resource to avoid mutating the original
-              const updatedResource = { ...resource };
-
-              updatedResource.value = this.stringifyValue(newValue, type);
-
-              // Save the updated resource (CRD)
-              updates.push(resource.save());
-            }
+          // Only save if value changed and resource exists
+          if (resource && JSON.stringify(currentValue) !== JSON.stringify(originalValue)) {
+            console.log(`Adding ${settingId} to updates`);
+            updates.push(resource.save());
           }
         });
 
+        console.log(`Total updates: ${updates.length}`);
+
         if (updates.length > 0) {
           await Promise.all(updates);
-          await this.fetchData();
+          // Update original values after successful save
+          this.originalValues = { ...this.values };
         }
 
         btnCB(true);
       } catch (err) {
+        console.error('Save error:', err);
         this.errors.push(err.message || 'Failed to save settings');
         btnCB(false);
       }
@@ -266,7 +321,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="isLoading" />
+  <Loading v-if="$fetchState.pending" />
   <div v-else class="longhorn-settings">
     <div class="header">
       <h1>{{ t('longhorn.settings.title') }}</h1>
