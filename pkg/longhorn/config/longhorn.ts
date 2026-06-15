@@ -53,7 +53,7 @@ export function init($plugin: any, store: any) {
     public: true,
     icon: 'longhorn',
     inStore: 'cluster',
-    inExplorer: false,
+    showNamespaceFilter: false,
     namespace: LONGHORN_NAMESPACE,
     ifHaveGroup: null,
   });
