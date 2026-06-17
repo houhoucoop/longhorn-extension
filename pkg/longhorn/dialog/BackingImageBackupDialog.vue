@@ -6,7 +6,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import FormValidation from '@shell/mixins/form-validation';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
-import { LONGHORN_NAMESPACE } from '@longhorn/types/longhorn';
 
 export default {
   name: 'BackingImageBackupDialog',
@@ -76,18 +75,6 @@ export default {
       this.$emit('close');
     },
 
-    generateRandomId() {
-      if (globalThis?.crypto?.randomUUID) {
-        return globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 8);
-      }
-
-      return Math.random().toString(36).slice(2, 10);
-    },
-
-    buildBackupBackingImageName() {
-      return `${this.backingImageName}-${this.generateRandomId()}`;
-    },
-
     async loadBackupTargets() {
       this.errors = [];
 
@@ -115,22 +102,9 @@ export default {
       this.errors = [];
 
       try {
-        const inStore = this.$store.getters['currentProduct']?.inStore || 'cluster';
-
-        const backupBackingImage = await this.$store.dispatch(`${inStore}/create`, {
-          type: LONGHORN_RESOURCES.BACKING_IMAGE_BACKUPS,
-          metadata: {
-            name: this.buildBackupBackingImageName(),
-            namespace: LONGHORN_NAMESPACE,
-          },
-          spec: {
-            backingImage: this.backingImageName,
-            backupTargetName: this.value.backupTargetName,
-            userCreated: true,
-          },
+        await this.resource.doAction('backupBackingImageCreate', {
+          backupTargetName: this.value.backupTargetName,
         });
-
-        await backupBackingImage.save();
 
         buttonDone(true);
         this.close();

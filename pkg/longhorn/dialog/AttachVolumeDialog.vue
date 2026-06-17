@@ -8,12 +8,17 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { useI18n } from '@shell/composables/useI18n';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
 
 const props = defineProps({
   resources: {
     type: Array,
     default: () => [],
+  },
+  initialNodes: {
+    type: Array,
+    default: undefined,
   },
 });
 
@@ -25,8 +30,8 @@ const { t } = useI18n(store);
 const selectedNodeId = ref('');
 const disableFrontend = ref(false);
 const errors = ref([]);
-const loading = ref(true);
-const nodes = ref([]);
+const loading = ref(!props.initialNodes);
+const nodes = ref(props.initialNodes || []);
 
 const volume = computed(() => props.resources?.[0]);
 
@@ -42,7 +47,14 @@ const maintenanceForced = computed(() => isRwxNonMigratable.value);
 const nodeOptions = computed(() => {
   return nodes.value
     .filter((nodeResource) => nodeResource.isReady)
-    .map((nodeResource) => ({ label: nodeResource.id, value: nodeResource.id }));
+    .map((nodeResource) => {
+      const nodeName = nodeResource.metadata?.name || nodeResource.name || nodeResource.id;
+
+      return {
+        label: nodeName,
+        value: nodeName,
+      };
+    });
 });
 
 function close() {
@@ -52,6 +64,10 @@ function close() {
 onMounted(async () => {
   if (isRwxNonMigratable.value) {
     disableFrontend.value = true;
+  }
+
+  if (props.initialNodes) {
+    return;
   }
 
   const inStore = store.getters['currentProduct']?.inStore;
@@ -72,9 +88,41 @@ onMounted(async () => {
 });
 
 async function submit(buttonDone) {
-  // TODO: implement attach
-  // Call volume.value.doAction('attach', { hostId, disableFrontend, attachedBy, attacherType, attachmentID })
-  buttonDone(false);
+  errors.value = [];
+
+  if (!selectedNodeId.value) {
+    errors.value = [t('longhorn.volume.dialog.attach.errors.nodeRequired')];
+    buttonDone(false);
+
+    return;
+  }
+
+  try {
+    const attachUrl = volume.value?.actionLinkFor?.('attach') || volume.value?.actionLinkFor?.('activate');
+
+    if (!attachUrl) {
+      throw new Error(t('longhorn.volume.dialog.attach.errors.attachActionUnavailable'));
+    }
+
+    await volume.value.doAction(
+      'attach',
+      {
+        hostId: selectedNodeId.value,
+        disableFrontend: disableFrontend.value,
+        attachedBy: 'longhorn-ui',
+        attacherType: 'longhorn-api',
+        attachmentID: 'longhorn-ui',
+      },
+      {
+        url: attachUrl,
+      }
+    );
+    buttonDone(true);
+    close();
+  } catch (err) {
+    errors.value = exceptionToErrorsArray(err);
+    buttonDone(false);
+  }
 }
 </script>
 
@@ -85,7 +133,7 @@ async function submit(buttonDone) {
     </template>
 
     <template #body>
-      <Loading v-if="loading" />
+      <Loading v-if="loading" mode="relative" :no-delay="true" />
       <div v-else>
         <div class="form-field">
           <LabeledSelect

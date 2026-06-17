@@ -1,4 +1,4 @@
-import { LONGHORN_RESOURCES } from '@longhorn/types/resources';
+import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 import { VOLUME_STATE } from '@longhorn/types/volume';
 import { getVolumeStateQueryValue } from '@longhorn/utils/volume';
 import { BADGE_COLOR } from '@longhorn/types/general';
@@ -13,8 +13,12 @@ const BADGE = {
 };
 
 const STATE_DISPLAY_MAP = {
+  creating: 'Creating',
   attached: 'Attached',
   detached: 'Detached',
+  attaching: 'Attaching',
+  detaching: 'Detaching',
+  deleting: 'Deleting',
   faulted: 'Faulted',
   healthy: 'Healthy',
   degraded: 'Degraded',
@@ -30,6 +34,10 @@ const ROBUSTNESS = {
 const VOLUME_ACTION = {
   ATTACH: 'promptAttach',
   DETACH: 'detachVolume',
+  SALVAGE: 'salvage',
+  BACKEND_ACTIVATE: 'activate',
+  BACKEND_ATTACH: 'attach',
+  BACKEND_DETACH: 'detach',
   ENGINE_UPGRADE: 'engineUpgrade',
   TRIM_FILESYSTEM: 'trimFilesystem',
   PV_AND_PVC_CREATE: 'pvAndpvcCreate',
@@ -38,6 +46,10 @@ const VOLUME_ACTION = {
 };
 
 const MANUAL_ACTION_FILTERS = new Set([
+  VOLUME_ACTION.BACKEND_ACTIVATE,
+  VOLUME_ACTION.BACKEND_ATTACH,
+  VOLUME_ACTION.BACKEND_DETACH,
+  VOLUME_ACTION.SALVAGE,
   VOLUME_ACTION.ENGINE_UPGRADE,
   VOLUME_ACTION.TRIM_FILESYSTEM,
   VOLUME_ACTION.BACKEND_PV_CREATE,
@@ -46,6 +58,8 @@ const MANUAL_ACTION_FILTERS = new Set([
 
 const VOLUME_DIALOG = {
   ATTACH: 'AttachVolumeDialog',
+  SALVAGE: 'SalvageDialog',
+  ENGINE_UPGRADE: 'EngineUpgradeDialog',
   CREATE_PV_AND_PVC: 'CreatePVAndPVCDialog',
 };
 
@@ -61,46 +75,47 @@ export default class VolumeModel extends LonghornModel {
   }
 
   get availableActions() {
-    const out = super._availableActions || [];
+    const out = this.backendAvailableActions;
     const isLocked = this.isStandby || this.isRestoring;
-
-    // TODO: remove these custom entries once the backend exposes the corresponding
-    // volume actions consistently and the UI can rely on them without hiding items.
     const custom = [
-      {
+      this.hasAttachAction && {
         action: VOLUME_ACTION.ATTACH,
-        label: 'Attach',
+        label: this.t('longhorn.volume.actions.attach'),
         icon: 'icon-plus',
         enabled: !this.isRestoring && this.state === VolumeModel.STATES.DETACHED,
       },
-      {
+      this.hasDetachAction && {
         action: VOLUME_ACTION.DETACH,
-        label: 'Detach',
+        label: this.t('longhorn.volume.actions.detach'),
         icon: 'icon-minus',
         enabled: this.canDetach,
       },
-      {
-        action: VOLUME_ACTION.ENGINE_UPGRADE,
-        label: 'Upgrade Engine',
-        icon: 'icon-upgrade-alt',
-        enabled: true,
+      this.hasSalvageAction && {
+        action: VOLUME_ACTION.SALVAGE,
+        label: this.t('longhorn.volume.actions.salvage'),
+        icon: 'icon-backup-restore',
+        enabled: !this.isRestoring,
       },
-      {
-        action: VOLUME_ACTION.TRIM_FILESYSTEM,
-        label: 'Trim Filesystem',
-        icon: 'icon-file',
-        enabled: true,
+      this.hasEngineUpgradeAction && {
+        action: VOLUME_ACTION.ENGINE_UPGRADE,
+        label: this.t('longhorn.volume.actions.engineUpgrade'),
+        icon: 'icon-upgrade-alt',
+        enabled: this.canEngineUpgrade,
       },
       {
         action: VOLUME_ACTION.PV_AND_PVC_CREATE,
-        label: 'Create PV/PVC',
+        label: this.t('longhorn.volume.actions.createPvPvc'),
         icon: 'icon-storage',
-        enabled: true,
+        enabled: this.canCreatePvAndPvc,
       },
-    ];
+      {
+        action: VOLUME_ACTION.TRIM_FILESYSTEM,
+        label: this.t('longhorn.volume.actions.trimFilesystem'),
+        icon: 'icon-file',
+        enabled: this.canTrimFilesystem,
+      },
+    ].filter(Boolean);
 
-    // TODO: stop filtering these backend actions once the UI can rely on the
-    // backend-provided action list for visibility without losing menu entries.
     const baseActions = out.filter((action) => !MANUAL_ACTION_FILTERS.has(action.action));
 
     return this.sanitizeAvailableActions([
@@ -111,9 +126,6 @@ export default class VolumeModel extends LonghornModel {
         switch (cloned.action) {
           case 'cloneYaml':
             cloned.enabled = !isLocked;
-            break;
-          case 'salvage':
-            cloned.enabled = !this.isRestoring;
             break;
           case 'goToEditYaml':
           case 'goToEdit':
@@ -126,35 +138,108 @@ export default class VolumeModel extends LonghornModel {
     ]);
   }
 
-  openVolumeDialog(component) {
+  openVolumeDialog(component, componentProps = {}) {
     this.$dispatch('promptModal', {
       resources: [this],
       component,
+      componentProps,
     });
   }
 
-  promptAttach() {
-    this.openVolumeDialog(VOLUME_DIALOG.ATTACH);
+  openActionConfirmDialog({ title, message, confirmLabel, confirmButtonClass, onConfirm }) {
+    this.$dispatch('promptModal', {
+      component: 'ActionConfirmDialog',
+      componentProps: {
+        title,
+        message,
+        confirmLabel,
+        confirmButtonClass,
+        onConfirm,
+      },
+    });
   }
 
-  detachVolume() {
-    // TODO: implement detach
-    // Use volume API action: this.doAction('detach', { attachmentID, hostId, forceDetach })
+  async promptAttach() {
+    const inStore = this.inStore;
+
+    if (!inStore) {
+      this.openVolumeDialog(VOLUME_DIALOG.ATTACH);
+
+      return;
+    }
+
+    try {
+      const initialNodes = await this.$dispatch(
+        `${inStore}/findAll`,
+        { type: LONGHORN_RESOURCES.NODES },
+        { root: true }
+      );
+
+      if (initialNodes.length > 0) {
+        this.openVolumeDialog(VOLUME_DIALOG.ATTACH, { initialNodes });
+      } else {
+        this.openVolumeDialog(VOLUME_DIALOG.ATTACH);
+      }
+    } catch {
+      // If fetch fails, open dialog without initial nodes
+      this.openVolumeDialog(VOLUME_DIALOG.ATTACH);
+    }
+  }
+
+  async detachVolume() {
+    const detachTargets = (this.attachmentRows || [])
+      .map((row) => ({
+        attachmentID: row?.attachmentID || '',
+        hostId: row?.nodeID && row.nodeID !== '—' ? row.nodeID : '',
+      }))
+      .filter((target) => !!target.attachmentID);
+
+    if (!detachTargets.length) {
+      await this.doAction('detach', {
+        attachmentID: '',
+        hostId: '',
+        forceDetach: true,
+      });
+
+      return;
+    }
+
+    await Promise.all(
+      detachTargets.map((target) =>
+        this.doAction('detach', {
+          attachmentID: target.attachmentID,
+          hostId: target.hostId,
+          forceDetach: false,
+        })
+      )
+    );
   }
 
   engineUpgrade() {
-    // TODO: implement engine upgrade
-    // Use volume API action: this.doAction('engineUpgrade', { image })
+    this.openVolumeDialog(VOLUME_DIALOG.ENGINE_UPGRADE);
   }
 
   salvage() {
-    // TODO: implement salvage
-    // Use volume API action: this.doAction('salvage', { names })
+    const replicas = (this.status?.replicas || []).filter((replica) => !!replica?.name);
+
+    if (!replicas.length) {
+      throw new Error(this.t('longhorn.volume.dialog.confirm.errors.noReplicaForSalvage'));
+    }
+
+    this.openVolumeDialog(VOLUME_DIALOG.SALVAGE, { replicas });
   }
 
   trimFilesystem() {
-    // TODO: implement trim filesystem
-    // Use volume API action: this.doAction('trimFilesystem')
+    this.openActionConfirmDialog({
+      title: this.t('longhorn.volume.dialog.confirm.trimFilesystem.title'),
+      message: this.t('longhorn.volume.dialog.confirm.trimFilesystem.message', {
+        name: this.metadata?.name || this.id,
+      }),
+      confirmLabel: this.t('longhorn.volume.dialog.confirm.trimFilesystem.confirm'),
+      onConfirm: async () => {
+        await this.doAction('trimFilesystem');
+      },
+    });
   }
 
   pvAndpvcCreate() {
@@ -189,6 +274,13 @@ export default class VolumeModel extends LonghornModel {
     return this.status?.restoreStatus?.some((item) => item?.isRestoring) ?? false;
   }
 
+  get isEngineUpgrading() {
+    const desiredImage = this.spec?.image || '';
+    const currentImage = this.status?.currentImage || '';
+
+    return !!desiredImage && !!currentImage && desiredImage !== currentImage;
+  }
+
   get canDetach() {
     if (this.isStandby || this.isRestoring) {
       return false;
@@ -205,12 +297,88 @@ export default class VolumeModel extends LonghornModel {
     return this.state === VolumeModel.STATES.ATTACHED;
   }
 
-  get canEngineUpgrade() {
-    if (this.isRestoring || this.spec?.dataEngine === 'v2') {
+  get canCreatePvAndPvc() {
+    const kubernetesStatus = this.kubernetesStatus || {};
+
+    if (kubernetesStatus.pvcName && !kubernetesStatus.lastPVCRefAt) {
       return false;
     }
 
-    if (![VolumeModel.STATES.DETACHED, VolumeModel.STATES.ATTACHED].includes(this.state)) {
+    if (this.isFaulted || this.isStandby || this.isRestoring) {
+      return false;
+    }
+
+    if (['attaching', 'detaching'].includes(this.state)) {
+      return false;
+    }
+
+    const hasPvCreateAction = !!this.actionLinkFor(VOLUME_ACTION.BACKEND_PV_CREATE);
+    const hasPvcCreateAction = !!this.actionLinkFor(VOLUME_ACTION.BACKEND_PVC_CREATE);
+
+    return hasPvCreateAction && hasPvcCreateAction;
+  }
+
+  get canTrimFilesystem() {
+    return this.state === VolumeModel.STATES.ATTACHED;
+  }
+
+  get hasAttachAction() {
+    return !!this.actionLinkFor(VOLUME_ACTION.BACKEND_ATTACH) || !!this.actionLinkFor(VOLUME_ACTION.BACKEND_ACTIVATE);
+  }
+
+  get hasDetachAction() {
+    return !!this.actionLinkFor(VOLUME_ACTION.BACKEND_DETACH);
+  }
+
+  get hasSalvageAction() {
+    return !!this.actionLinkFor(VOLUME_ACTION.SALVAGE);
+  }
+
+  get hasEngineUpgradeAction() {
+    return !!this.actionLinkFor(VOLUME_ACTION.ENGINE_UPGRADE);
+  }
+
+  get hasEngineUpgradeAvailable() {
+    if (this.spec?.dataEngine === 'v2' || this.isEngineUpgrading) {
+      return false;
+    }
+
+    const currentImage = this.status?.currentImage || '';
+    const defaultEngineImage = this.defaultEngineImageSetting?.value || '';
+
+    if (!currentImage || !defaultEngineImage || defaultEngineImage === currentImage) {
+      return false;
+    }
+
+    const state = this.state;
+    const robustness = this.robustness;
+
+    return (
+      (state === VolumeModel.STATES.ATTACHED && robustness === ROBUSTNESS.HEALTHY) ||
+      (state === VolumeModel.STATES.DETACHED && robustness !== ROBUSTNESS.FAULTED)
+    );
+  }
+
+  get canEngineUpgrade() {
+    if (!this.hasEngineUpgradeAction) {
+      return false;
+    }
+
+    if (this.isRestoring || !this.hasEngineUpgradeAvailable) {
+      return false;
+    }
+
+    const desiredImage = this.spec?.image || '';
+
+    const automaticUpgradeLimit = this.concurrentAutomaticEngineUpgradePerNodeLimitSetting?.value;
+    const defaultEngineImage = this.defaultEngineImageSetting?.value;
+
+    if (
+      automaticUpgradeLimit &&
+      automaticUpgradeLimit !== '0' &&
+      defaultEngineImage &&
+      desiredImage === defaultEngineImage
+    ) {
       return false;
     }
 
@@ -218,13 +386,10 @@ export default class VolumeModel extends LonghornModel {
   }
 
   get displayState() {
-    const { state, robustness } = this;
-    const isStable =
-      (state === VolumeModel.STATES.ATTACHED && [ROBUSTNESS.HEALTHY, ROBUSTNESS.DEGRADED].includes(robustness)) ||
-      (state === VolumeModel.STATES.DETACHED && robustness === ROBUSTNESS.FAULTED);
-    const target = isStable ? robustness : state;
+    const { state } = this;
 
-    return STATE_DISPLAY_MAP[target] || target.charAt(0).toUpperCase() + target.slice(1);
+    // Simply capitalize the state, similar to longhorn-ui's text.hyphenToHump()
+    return STATE_DISPLAY_MAP[state] || state.charAt(0).toUpperCase() + state.slice(1);
   }
 
   get readyStatus() {
@@ -255,10 +420,6 @@ export default class VolumeModel extends LonghornModel {
     return (this.status?.replicas || []).every((replica) => replica.hostID !== attachedNodeId);
   }
 
-  get stateDescription() {
-    return '';
-  }
-
   get stateDisplay() {
     return this.volumeStatus?.stateDisplay || this.getDisplayForState('unknown');
   }
@@ -274,24 +435,28 @@ export default class VolumeModel extends LonghornModel {
   get volumeStatus() {
     const { state, robustness } = this;
 
-    if (robustness === ROBUSTNESS.FAULTED) {
-      return { stateDisplay: 'Faulted', stateBackground: BADGE.ERROR, message: '' };
-    }
+    // Reference: longhorn-ui VolumeList.js stateText logic
+    // Priority: stable state combinations > restoring > transitional states
+
+    // Restoring state
     if (this.isRestoring) {
       return { stateDisplay: 'Restoring', stateBackground: BADGE.WARNING, message: '' };
     }
-    if (state === VolumeModel.STATES.ATTACHED) {
-      if (robustness === ROBUSTNESS.HEALTHY) {
-        return { stateDisplay: 'Healthy', stateBackground: BADGE.SUCCESS, message: '' };
-      }
-      if (robustness === ROBUSTNESS.DEGRADED) {
-        return { stateDisplay: 'Degraded', stateBackground: BADGE.WARNING, message: '' };
-      }
-    }
-    if (state === VolumeModel.STATES.DETACHED) {
-      return { stateDisplay: 'Detached', stateBackground: BADGE.DISABLED, message: '' };
+
+    // Stable state combinations (only show robustness in these specific cases)
+    if (state === VolumeModel.STATES.ATTACHED && robustness === ROBUSTNESS.HEALTHY) {
+      return { stateDisplay: 'Healthy', stateBackground: BADGE.SUCCESS, message: '' };
     }
 
+    if (state === VolumeModel.STATES.ATTACHED && robustness === ROBUSTNESS.DEGRADED) {
+      return { stateDisplay: 'Degraded', stateBackground: BADGE.WARNING, message: '' };
+    }
+
+    if (state === VolumeModel.STATES.DETACHED && robustness === ROBUSTNESS.FAULTED) {
+      return { stateDisplay: 'Faulted', stateBackground: BADGE.ERROR, message: '' };
+    }
+
+    // All other cases: use state (detached, attaching, detaching, creating, deleting)
     return { stateDisplay: this.displayState, stateBackground: BADGE.DISABLED, message: '' };
   }
 
@@ -325,22 +490,10 @@ export default class VolumeModel extends LonghornModel {
 
   // Space-delimited host IDs used for simple table filtering by replica location.
   get replicaNodeIds() {
-    const inStore = this.$rootGetters['currentProduct']?.inStore;
-    const allReplicas = inStore ? this.$rootGetters[`${inStore}/all`]?.(LONGHORN_RESOURCES.REPLICAS) || [] : [];
-    const volumeName = this.metadata?.name || this.id;
-    const relatedReplicas = allReplicas.filter(
-      (replica) => replica?.spec?.volumeName === volumeName || replica?.volumeName === volumeName
-    );
-    const replicas = this.status?.replicas?.length
-      ? this.status.replicas
-      : this.replicas?.length
-        ? this.replicas
-        : relatedReplicas;
-    const ids = replicas
-      .map((replica) => replica?.hostID || replica?.hostId || replica?.spec?.nodeID || replica?.spec?.nodeId)
-      .filter((id) => !!id);
+    const replicas = this.status?.replicas || [];
+    const nodeIds = replicas.map((replica) => replica?.hostID).filter((id) => !!id);
 
-    return [...new Set(ids)].join(' ');
+    return [...new Set(nodeIds)].join(' ');
   }
 
   get kubernetesStatus() {
@@ -357,14 +510,24 @@ export default class VolumeModel extends LonghornModel {
     return this.$rootGetters['currentProduct']?.inStore;
   }
 
-  get engines() {
-    if (!this.inStore) return [];
-
-    return this.$rootGetters[`${this.inStore}/all`](LONGHORN_RESOURCES.ENGINES) || [];
+  get backendAvailableActions() {
+    return super._availableActions || [];
   }
 
-  get currentEngine() {
-    return this.engines.find((engine) => engine.spec?.volumeName === this.metadata.name) || null;
+  getSettingById(settingId) {
+    if (!this.inStore) {
+      return null;
+    }
+
+    return this.$rootGetters[`${this.inStore}/byId`](LONGHORN_RESOURCES.SETTINGS, settingId) || null;
+  }
+
+  get defaultEngineImageSetting() {
+    return this.getSettingById(LONGHORN_SETTINGS.DEFAULT_ENGINE_IMAGE);
+  }
+
+  get concurrentAutomaticEngineUpgradePerNodeLimitSetting() {
+    return this.getSettingById(LONGHORN_SETTINGS.CONCURRENT_AUTOMATIC_ENGINE_UPGRADE_PER_NODE_LIMIT);
   }
 
   get volumeAttachments() {

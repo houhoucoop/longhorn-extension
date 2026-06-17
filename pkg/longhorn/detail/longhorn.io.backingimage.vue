@@ -149,6 +149,10 @@ const diskHeaders = computed(() => [
   },
 ]);
 
+const canCleanUpDiskFile = computed(
+  () => typeof props.value?.doAction === 'function' && !!props.value?.actions?.backingImageCleanup
+);
+
 function openActionDialog({ title, message, confirmLabel, confirmButtonClass, onConfirm }) {
   store.dispatch('management/promptModal', {
     component: 'ActionConfirmDialog',
@@ -163,16 +167,16 @@ function openActionDialog({ title, message, confirmLabel, confirmButtonClass, on
 }
 
 async function cleanUp(row) {
+  if (!canCleanUpDiskFile.value || !row?.disk) {
+    return;
+  }
+
   openActionDialog({
     title: t('longhorn.backingImage.actions.cleanUp'),
     message: t('longhorn.backingImage.messages.confirmCleanUp', { disk: row.disk }),
     confirmLabel: t('longhorn.backingImage.actions.cleanUp'),
     onConfirm: async () => {
-      try {
-        // TODO: Implement disk cleanup via Longhorn manager API.
-        // Call: doAction('backingImageCleanup', { disks: [row.disk] })
-        // Reference: longhorn-ui/src/services/backingImage.js - deleteDisksOnBackingImage()
-      } catch {}
+      await props.value.doAction('backingImageCleanup', { disks: [row.disk] });
     },
   });
 }
@@ -421,7 +425,7 @@ function displayValue(val) {
           </template>
           <template #col:operation="{ row }">
             <td>
-              <button class="btn btn-sm role-secondary" @click.stop="cleanUp(row)">
+              <button class="btn btn-sm role-secondary" :disabled="!canCleanUpDiskFile" @click.stop="cleanUp(row)">
                 {{ t('longhorn.backingImage.actions.cleanUp') }}
               </button>
             </td>

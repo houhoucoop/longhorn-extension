@@ -7,6 +7,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { useI18n } from '@shell/composables/useI18n';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 import { useStore } from 'vuex';
 import { LONGHORN_RESOURCES, LONGHORN_SETTINGS } from '@longhorn/types/resources';
 import { getBackupTargetNameFromBackup, getBackupUrl, getBackupVolumeNameFromBackup } from '@longhorn/utils/backup';
@@ -146,7 +147,7 @@ onMounted(() => {
   loadDefaultStorageClassName();
 });
 
-function submit(buttonDone) {
+async function submit(buttonDone) {
   errors.value = [];
 
   if (!pvNameDisabled.value && !pvName.value.trim()) {
@@ -163,10 +164,35 @@ function submit(buttonDone) {
     return;
   }
 
-  // TODO: Create PV/PVC cannot be implemented by mutating the Longhorn Volume CRD.
-  // This flow must call the Longhorn API actions (`pvCreate` and `pvcCreate`) so the
-  // manager can create Kubernetes PV/PVC objects and handle PVC reuse behavior safely.
-  buttonDone(false);
+  try {
+    if (!pvNameDisabled.value) {
+      const pvPayload = {
+        pvName: pvName.value.trim(),
+        fsType: fsType.value,
+        storageClassName: storageClassName.value.trim(),
+      };
+
+      if (isEncrypted.value) {
+        pvPayload.secretNamespace = secretNamespace.value.trim();
+        pvPayload.secretName = secretName.value.trim();
+      }
+
+      await volume.value.doAction('pvCreate', pvPayload);
+    }
+
+    if (createPVC.value) {
+      await volume.value.doAction('pvcCreate', {
+        namespace: namespace.value.trim(),
+        pvcName: pvcName.value.trim(),
+      });
+    }
+
+    buttonDone(true);
+    close();
+  } catch (err) {
+    errors.value = exceptionToErrorsArray(err);
+    buttonDone(false);
+  }
 }
 </script>
 

@@ -75,7 +75,7 @@ export default {
 </script>
 
 <template>
-  <Card class="action-confirm-dialog" :show-highlight-border="false">
+  <Card :show-highlight-border="false">
     <template #title>
       <h4 class="dialog-title">{{ title }}</h4>
     </template>
@@ -85,19 +85,21 @@ export default {
     </template>
 
     <template #actions>
-      <button type="button" class="btn role-secondary" :disabled="isSubmitting" @click="close">
-        {{ isConfirmMode ? t('generic.cancel') : t('generic.close') }}
-      </button>
-      <button
-        v-if="isConfirmMode"
-        type="button"
-        class="btn ml-10"
-        :class="confirmButtonClass"
-        :disabled="isSubmitting"
-        @click="confirm"
-      >
-        {{ confirmLabel }}
-      </button>
+      <div class="actions-row">
+        <button type="button" class="btn role-secondary mr-10" :disabled="isSubmitting" @click="close">
+          {{ isConfirmMode ? t('generic.cancel') : t('generic.close') }}
+        </button>
+        <button
+          v-if="isConfirmMode"
+          type="button"
+          class="btn"
+          :class="confirmButtonClass"
+          :disabled="isSubmitting"
+          @click="confirm"
+        >
+          {{ confirmLabel }}
+        </button>
+      </div>
     </template>
   </Card>
 </template>
@@ -111,5 +113,11 @@ export default {
   margin: 0;
   line-height: 1.5;
   word-break: break-word;
+}
+
+.actions-row {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 </style>

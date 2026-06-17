@@ -38,12 +38,19 @@ export default class BackingImageModel extends LonghornModel {
       label: 'Download Image',
     };
 
+    const hasActions = !!this.actions && Object.keys(this.actions).length > 0;
+    const customActions = hasActions ? [downloadAction, backupAction] : [];
+
+    if (!customActions.length) {
+      return this.sanitizeAvailableActions(actionsWithModified);
+    }
+
     const firstDividerIndex = actionsWithModified.findIndex((item) => item.divider);
 
     if (firstDividerIndex !== -1) {
-      actionsWithModified.splice(firstDividerIndex, 0, downloadAction, backupAction);
+      actionsWithModified.splice(firstDividerIndex, 0, ...customActions);
     } else {
-      actionsWithModified.unshift(downloadAction, backupAction);
+      actionsWithModified.unshift(...customActions);
     }
 
     return this.sanitizeAvailableActions(actionsWithModified);
@@ -67,7 +74,7 @@ export default class BackingImageModel extends LonghornModel {
 
   backup(resources = this) {
     this.$dispatch('promptModal', {
-      resources,
+      resources: Array.isArray(resources) ? resources : [resources],
       component: 'BackingImageBackupDialog',
     });
   }

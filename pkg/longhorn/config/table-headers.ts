@@ -150,7 +150,17 @@ export const VOLUMES_HEADER = [
     formatter: 'VolumeHealth',
     width: 120,
   },
-  NAME_COL,
+  {
+    name: '',
+    label: '',
+    value: () => '',
+    formatter: 'VolumeWarnings',
+    align: 'center',
+  },
+  {
+    ...NAME_COL,
+    formatter: 'VolumeNameWithIcons',
+  },
   {
     name: 'size',
     labelKey: 'longhorn.volume.table.header.size',
@@ -174,9 +184,9 @@ export const VOLUMES_HEADER = [
     labelKey: 'longhorn.volume.table.header.dataEngine',
     value: '$.spec.dataEngine',
     sort: ['$.spec.dataEngine'],
-    dashIfEmpty: true,
+    formatter: 'VolumeDataEngine',
     align: 'center',
-    width: 80,
+    width: 120,
   },
   {
     name: 'pvPvc',

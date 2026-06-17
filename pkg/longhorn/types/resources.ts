@@ -21,6 +21,8 @@ export const LONGHORN_RESOURCES = Object.freeze({
 });
 
 export const LONGHORN_SETTINGS = Object.freeze({
+  CONCURRENT_AUTOMATIC_ENGINE_UPGRADE_PER_NODE_LIMIT:
+    'longhorn-system/concurrent-automatic-engine-upgrade-per-node-limit',
   DEFAULT_ENGINE_IMAGE: 'longhorn-system/default-engine-image',
   CURRENT_LONGHORN_VERSION: 'longhorn-system/current-longhorn-version',
   STORAGE_OVER_PROVISIONING_PERCENTAGE: 'longhorn-system/storage-over-provisioning-percentage',

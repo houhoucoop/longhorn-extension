@@ -103,6 +103,24 @@ longhorn:
       fileSystem: File system
       block: Block
   volume:
+    actions:
+      attach: Attach
+      detach: Detach
+      salvage: Salvage
+      engineUpgrade: Upgrade Engine
+      createPvPvc: Create PV/PVC
+      trimFilesystem: Trim Filesystem
+    encrypted: Encrypted
+    drVolume: Disaster Recovery Volume
+    drVolumeRestoring: Disaster Recovery Volume (Restoring)
+    notReady: Not Ready
+    unscheduled: The volume cannot be scheduled
+    nodeDown: 'Node Down: {node}'
+    haDanger: All replicas on same node
+    haWarning: Some replicas share nodes
+    dataLocalityNotMet: Data Locality Not Met
+    engineUpgrading: Engine Upgrading
+    engineUpgradeAvailable: Engine Upgrade Available
     tooltip:
       notReady: Not Ready
       replicasShareSingleNode: All replicas share a node
@@ -200,6 +218,17 @@ longhorn:
         unrestrictedWithZero: Set ''0'' for unrestricted size
         revisionCounterDisabled: Disabling may improve performance but increases risk of data inconsistency after crashes
     dialog:
+      confirm:
+        salvage:
+          title: Salvage
+          message: Are you sure you want to salvage volume {name}?
+          confirm: Salvage
+        trimFilesystem:
+          title: Trim Filesystem
+          message: Are you sure you want to trim filesystem for volume {name}?
+          confirm: Trim Filesystem
+        errors:
+          noReplicaForSalvage: No replicas available for salvage
       attach:
         title: Attach Volume
         actions:
@@ -210,6 +239,7 @@ longhorn:
           maintenance: Maintenance Mode (Disable Frontend)
         rwxWarning: RWX volumes can only be manually attached in maintenance mode.
         errors:
+          attachActionUnavailable: Attach action is not available for this volume
           nodeRequired: Please select a node to attach
       engineUpgrade:
         title: Upgrade Engine Image
@@ -220,6 +250,17 @@ longhorn:
           imagePlaceholder: Select an engine image
         errors:
           engineImageRequired: Please select an engine image to upgrade
+      salvage:
+        title: Select Replicas to Salvage
+        description: Select one or more replicas to salvage.
+        actions:
+          salvage: Salvage
+        form:
+          host: Host
+          failedAt: Failed At
+          selectedCount: '{count} replicas selected'
+        errors:
+          replicaRequired: Please select at least one replica.
       pvAndpvcCreate:
         title: Create PV/PVC
         actions:
